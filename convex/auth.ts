@@ -18,9 +18,10 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
     database: authComponent.adapter(ctx),
     disabledPaths: ['/is-username-available'],
     session: {
-      // The application belongs to one owner. Keep the server session alive
-      // for installed-app use and refresh it while the owner is active.
-      expiresIn: 60 * 60 * 24 * 365 * 10,
+      // Cookie Max-Age cannot exceed 400 days. A one-year sliding session,
+      // refreshed daily while the owner uses the app, keeps sign-in persistent
+      // without making Better Auth reject the login response.
+      expiresIn: 60 * 60 * 24 * 365,
       updateAge: 60 * 60 * 24,
     },
     emailAndPassword: {
