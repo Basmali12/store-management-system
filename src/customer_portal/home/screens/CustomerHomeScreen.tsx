@@ -72,9 +72,10 @@ export function CustomerHomeScreen({ customerId, merchantId, onLogout }: Props) 
 
         <div className="flex justify-between items-center relative z-10">
           <div>
-            <h1 className="text-xl font-bold text-white">حسابي</h1>
+            <p className="text-xs font-bold text-teal-100">حساب الزبون</p>
+            <h1 className="mt-1 text-2xl font-black text-white">{customer.name}</h1>
             <p className="text-teal-100 text-sm mt-1 flex items-center gap-1">
-              <Store size={14} /> {storeName}
+              <Store size={14} /> حسابي · {storeName}
             </p>
           </div>
           <button

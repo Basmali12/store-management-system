@@ -81,7 +81,8 @@ describe('critical UI paths', () => {
     expect(document.querySelector('input[type="password"]')).toBeNull();
     fireEvent.change(screen.getByLabelText('رقم الهاتف المسجل'), { target: { value: '07712345678' } });
     fireEvent.click(screen.getByRole('button', { name: 'دخول إلى حسابي' }));
-    expect(await screen.findByRole('heading', { name: 'حسابي' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'زبون الاختبار' })).toBeTruthy();
+    expect(screen.getByText(/حسابي/)).toBeTruthy();
   });
 
   it('keeps the owner signed in across app restarts until explicit logout', () => {
