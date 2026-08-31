@@ -17,26 +17,10 @@ import { PlaceholderScreen } from "../../shared/components/PlaceholderScreen";
 import { OverdueScreen } from "../../merchant/overdue/screens/OverdueScreen";
 import { ReportsScreen } from "../../merchant/reports/screens/ReportsScreen";
 import { ActivityLogScreen } from "../../merchant/activity/screens/ActivityLogScreen";
-import {
-  getSubscriptionData,
-  SubscriptionData,
-} from "../../shared/subscription/services/subscriptionService";
-import { AlertCircle, Lock } from "lucide-react";
-import { tenantGetItem } from "../../shared/storage/tenantStorage";
-import { MerchantFeatureFlags } from "../../super_admin/models/types";
 
 export function MerchantNavigator() {
   const [currentTab, setCurrentTab] = useState("home");
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [subData, setSubData] = useState<SubscriptionData | null>(null);
-  const [features, setFeatures] = useState<MerchantFeatureFlags | null>(null);
-
-  useEffect(() => {
-    setSubData(getSubscriptionData());
-    const storedFeatures = tenantGetItem('merchant_feature_flags');
-    setFeatures(storedFeatures ? JSON.parse(storedFeatures) : null);
-  }, [currentTab]); // re-check when changing tabs
-
   // Simple nested routing state for accounts
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
     null,
@@ -196,14 +180,6 @@ export function MerchantNavigator() {
         );
 
       case "more":
-        if (selectedMoreRoute && features) {
-          const routeFlags: Record<string, keyof MerchantFeatureFlags> = {
-            inventory: 'inventoryEnabled', purchases: 'purchasesEnabled', suppliers: 'suppliersEnabled',
-            expenses: 'expensesEnabled', overdue: 'overdueEnabled', reports: 'advancedReportsEnabled'
-          };
-          const flag = routeFlags[selectedMoreRoute];
-          if (flag && !features[flag]) return <PlaceholderScreen title="هذه الميزة غير مفعلة في اشتراكك" onBack={() => setSelectedMoreRoute(null)} />;
-        }
         if (selectedMoreRoute === "inventory") {
           return (
             <div className="h-full flex flex-col relative">
@@ -318,27 +294,8 @@ export function MerchantNavigator() {
       className="min-h-screen bg-gray-50 flex flex-col font-[Cairo] text-gray-900 mx-auto max-w-md relative shadow-2xl overflow-hidden"
       dir="rtl"
     >
-      {(subData?.subscriptionStatus === "EXPIRED" || subData?.subscriptionStatus === "SUSPENDED") && (
-        <div className="bg-red-600 text-white p-3 flex items-start gap-3 relative z-50">
-          <Lock size={20} className="shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h4 className="font-bold text-sm">الاشتراك غير فعال</h4>
-            <p className="text-xs opacity-90 mt-1">
-              انتهى اشتراكك. يمكنك الإطلاع على بياناتك السابقة فقط. يرجى تفعيل
-              الاشتراك للاستمرار باستخدام كافة الميزات.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Main Content Area */}
-      <div
-        className={
-          (subData?.subscriptionStatus === "EXPIRED" || subData?.subscriptionStatus === "SUSPENDED") && currentTab !== "more"
-            ? "flex-1 overflow-hidden relative pointer-events-none opacity-80"
-            : "flex-1 overflow-hidden relative"
-        }
-      >
+      <div className="flex-1 overflow-hidden relative">
         {renderScreen()}
       </div>
 

@@ -14,6 +14,7 @@ export interface MerchantAccount {
 }
 
 const STORAGE_KEY = 'merchant_accounts';
+const OFFICIAL_MERCHANT_PHONE = '07710074850';
 
 const normalizeLegacyAccounts = (): MerchantAccount[] => {
   const current = localStorage.getItem(STORAGE_KEY);
@@ -34,6 +35,24 @@ const normalizeLegacyAccounts = (): MerchantAccount[] => {
 export const getMerchantAccounts = (): MerchantAccount[] => normalizeLegacyAccounts();
 export const saveMerchantAccounts = (accounts: MerchantAccount[]) => localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
 export const getMerchantAccount = (id: string) => getMerchantAccounts().find(account => account.id === id);
+
+export const ensureOfficialMerchantAccount = () => {
+  const accounts = getMerchantAccounts();
+  const existing = accounts.find(account => account.phone === OFFICIAL_MERCHANT_PHONE) || accounts[0];
+  const official: MerchantAccount = existing ? {
+    ...existing,
+    phone: OFFICIAL_MERCHANT_PHONE,
+  } : {
+      id: 'merchant_official',
+      ownerName: 'الحساب الرسمي',
+      storeName: 'المحل الرسمي',
+      phone: OFFICIAL_MERCHANT_PHONE,
+      createdAt: new Date().toISOString(),
+  };
+  delete official.passwordCredential;
+  delete official.password;
+  saveMerchantAccounts([official]);
+};
 
 export const authenticateMerchant = async (login: string, password: string): Promise<MerchantAccount | null> => {
   const accounts = getMerchantAccounts();

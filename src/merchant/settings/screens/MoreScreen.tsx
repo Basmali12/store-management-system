@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, FileMinus, PieChart, Users, History, DatabaseBackup, Palette, Settings, Crown, ChevronLeft, AlertCircle, Package } from 'lucide-react';
+import React from 'react';
+import { ShoppingBag, FileMinus, PieChart, Users, History, DatabaseBackup, Palette, Settings, ChevronLeft, Package } from 'lucide-react';
 import { Card } from '../../../shared/components/Card';
 import { clearMerchantSession } from '../../../shared/storage/session';
 import { cn } from '../../../shared/utils/utils';
-import { getSubscriptionData, getDaysRemaining, SubscriptionData } from '../../../shared/subscription/services/subscriptionService';
+import { signOutOfficialMerchant } from '../../../shared/auth/serverAuth';
 
 interface Props { onNavigate?: (route: string) => void; }
 
 export function MoreScreen({ onNavigate }: Props) {
-  const [subData, setSubData] = useState<SubscriptionData | null>(null);
-  
-  useEffect(() => {
-    setSubData(getSubscriptionData());
-  }, []);
-
   const sections = [
     {
       title: 'العمليات',
@@ -50,45 +44,6 @@ export function MoreScreen({ onNavigate }: Props) {
 
       <div className="overflow-y-auto p-4 space-y-6">
         
-        {/* Subscription Banner */}
-        {subData?.subscriptionStatus === 'ACTIVE' && (
-          <Card className="bg-gradient-to-l from-amber-400 to-amber-500 border-none !p-4 flex items-center justify-between cursor-pointer active:scale-95 transition-transform">
-            <div>
-              <h3 className="font-bold text-amber-950 flex items-center gap-2">
-                <Crown size={20} className="text-amber-900" />
-                النسخة المدفوعة
-              </h3>
-              <p className="text-amber-900/80 text-xs mt-1 font-semibold">مفعلة - تنتهي بعد {subData.subscriptionExpiresAt ? getDaysRemaining(subData.subscriptionExpiresAt) : 0} يوم</p>
-            </div>
-          </Card>
-        )}
-        
-        {subData?.subscriptionStatus === 'TRIAL' && (
-          <Card className="bg-gradient-to-l from-blue-400 to-blue-500 border-none !p-4 flex items-center justify-between cursor-pointer active:scale-95 transition-transform">
-            <div>
-              <h3 className="font-bold text-blue-950 flex items-center gap-2">
-                <Crown size={20} className="text-blue-900" />
-                الفترة التجريبية
-              </h3>
-              <p className="text-blue-900/80 text-xs mt-1 font-semibold">مفعلة - متبقي {getDaysRemaining(subData.trialEndsAt)} أيام</p>
-            </div>
-            <span className="bg-white text-blue-700 text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm">التفعيل من الإدارة</span>
-          </Card>
-        )}
-        
-        {subData?.subscriptionStatus === 'EXPIRED' && (
-          <Card className="bg-gradient-to-l from-red-400 to-red-500 border-none !p-4 flex items-center justify-between cursor-pointer active:scale-95 transition-transform">
-            <div>
-              <h3 className="font-bold text-red-950 flex items-center gap-2">
-                <AlertCircle size={20} className="text-red-900" />
-                انتهى الاشتراك
-              </h3>
-              <p className="text-red-900/80 text-xs mt-1 font-semibold">يرجى التجديد للاستمرار</p>
-            </div>
-            <span className="bg-white text-red-700 text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm">راجع الإدارة للتجديد</span>
-          </Card>
-        )}
-
         {sections.map((section, idx) => (
           <div key={idx} className="space-y-2">
             <h3 className="text-sm font-bold text-gray-500 px-2">{section.title}</h3>
@@ -114,7 +69,7 @@ export function MoreScreen({ onNavigate }: Props) {
         
         <div className="text-center pb-8 pt-4">
           <button 
-            onClick={() => { clearMerchantSession(); window.location.reload(); }}
+            onClick={() => { void signOutOfficialMerchant().finally(() => { clearMerchantSession(); window.location.reload(); }); }}
             className="w-full bg-red-50 text-red-600 font-bold py-3 rounded-xl mb-4 hover:bg-red-100 active:scale-95 transition-all"
           >
             تسجيل خروج

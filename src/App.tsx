@@ -5,11 +5,12 @@
 import React, { useEffect } from 'react';
 import { AppRouter } from './navigation/app_router/AppRouter';
 import { AppErrorBoundary } from './shared/components/AppErrorBoundary';
-import { hardenLegacyMerchantAccounts } from './shared/auth/merchantAccounts';
+import { ensureOfficialMerchantAccount } from './shared/auth/merchantAccounts';
+import { InstallPrompt } from './shared/components/InstallPrompt';
 
 export default function App() {
   useEffect(() => {
-    void hardenLegacyMerchantAccounts();
+    ensureOfficialMerchantAccount();
     // Initialize theme
     const theme = localStorage.getItem('app_theme') || 'system';
     if (theme === 'dark') {
@@ -25,5 +26,10 @@ export default function App() {
     }
   }, []);
 
-  return <AppErrorBoundary><AppRouter /></AppErrorBoundary>;
+  return (
+    <AppErrorBoundary>
+      <AppRouter />
+      <InstallPrompt />
+    </AppErrorBoundary>
+  );
 }

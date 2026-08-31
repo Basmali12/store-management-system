@@ -1,6 +1,12 @@
-import { defineSchema } from 'convex/server';
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
-// Business tables will be added only together with server-side authentication
-// and tenant authorization. Keeping the initial schema empty avoids exposing
-// customer records through client-supplied merchant identifiers.
-export default defineSchema({});
+// This application belongs to one official store owner. There is one shared
+// store dataset and no tenant, merchant, or account partitioning in Convex.
+export default defineSchema({
+  storeRecords: defineTable({
+    key: v.string(),
+    value: v.string(),
+    updatedAt: v.number(),
+  }).index('by_key', ['key']),
+});

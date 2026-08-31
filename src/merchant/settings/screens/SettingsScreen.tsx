@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight, Moon, Sun, Monitor, User, Store, Shield, Download, Upload, LogOut, Check, AlertCircle } from 'lucide-react';
 import { clearMerchantSession } from '../../../shared/storage/session';
 import { getMerchantSession } from '../../../shared/storage/session';
-import { getMerchantAccount, updateMerchantAccount, changeMerchantPassword } from '../../../shared/auth/merchantAccounts';
+import { getMerchantAccount, updateMerchantAccount } from '../../../shared/auth/merchantAccounts';
+import { changeOfficialMerchantPassword, signOutOfficialMerchant } from '../../../shared/auth/serverAuth';
 import { exportTenantData, restoreTenantData } from '../../../shared/storage/tenantStorage';
 import { todayLocalDateKey } from '../../../shared/utils/date';
 import { addAuditEntry } from '../../../shared/audit/auditService';
@@ -81,7 +82,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
     const merchantId = getMerchantSession();
     if (merchantId) {
       try {
-        await changeMerchantPassword(merchantId, currentPassword, newPassword);
+        await changeOfficialMerchantPassword(currentPassword, newPassword);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -133,8 +134,10 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   };
 
   const handleLogout = () => {
-    clearMerchantSession();
-    window.location.reload();
+    void signOutOfficialMerchant().finally(() => {
+      clearMerchantSession();
+      window.location.reload();
+    });
   };
 
   return (

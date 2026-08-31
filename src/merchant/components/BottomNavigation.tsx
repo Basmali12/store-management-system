@@ -27,6 +27,7 @@ export function BottomNavigation({ currentTab, onChangeTab, onAddClick }: Bottom
         <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
           <button
             onClick={onAddClick}
+            aria-label="فتح الإجراءات السريعة"
             className="bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_25px_rgba(79,70,229,0.5)] border-[4px] border-gray-50 hover:scale-105 active:scale-95 transition-all duration-300"
           >
             <Plus size={32} strokeWidth={2.5} />

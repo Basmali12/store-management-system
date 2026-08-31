@@ -52,7 +52,7 @@ export function BottomSheet({ isOpen, onClose, onAction }: BottomSheetProps) {
           >
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">إجراء سريع</h2>
-              <button onClick={onClose} className="p-2 bg-gray-50 rounded-full text-gray-500 hover:bg-gray-100">
+              <button aria-label="إغلاق الإجراءات السريعة" onClick={onClose} className="p-2 bg-gray-50 rounded-full text-gray-500 hover:bg-gray-100">
                 <X size={20} />
               </button>
             </div>

@@ -1,10 +1,11 @@
 import { getMerchantSession } from './session';
+import { queueStoreRemove, queueStoreSet } from '../convex/tenantSyncBridge';
 
 export const TENANT_DATA_KEYS = [
   'merchant_customers', 'merchant_debts', 'merchant_payments',
   'merchant_suppliers_new', 'merchant_supplier_payments', 'merchant_products', 'merchant_stock_movements',
   'merchant_sales', 'merchant_purchases', 'merchant_expenses',
-  'merchant_product_field_settings', 'merchant_subscription', 'merchant_feature_flags', 'merchant_activity_log'
+  'merchant_product_field_settings', 'merchant_activity_log'
 ] as const;
 
 export const tenantStorageKey = (key: string, merchantId?: string) => {
@@ -16,11 +17,15 @@ export const tenantStorageKey = (key: string, merchantId?: string) => {
 export const tenantGetItem = (key: string, merchantId?: string) =>
   localStorage.getItem(tenantStorageKey(key, merchantId));
 
-export const tenantSetItem = (key: string, value: string, merchantId?: string) =>
+export const tenantSetItem = (key: string, value: string, merchantId?: string) => {
   localStorage.setItem(tenantStorageKey(key, merchantId), value);
+  queueStoreSet(key, value);
+};
 
-export const tenantRemoveItem = (key: string, merchantId?: string) =>
+export const tenantRemoveItem = (key: string, merchantId?: string) => {
   localStorage.removeItem(tenantStorageKey(key, merchantId));
+  queueStoreRemove(key);
+};
 
 export const migrateLegacyDataToMerchant = (merchantId: string) => {
   const ownerKey = 'legacy_data_owner';
