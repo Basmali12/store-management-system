@@ -1,0 +1,124 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* === Global Dark Mode Overrides === */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #111827 !important; /* bg-gray-900 */
+  color: #ffffff !important;
+}
+
+/* Backgrounds */
+.dark .bg-white {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+}
+.dark .bg-gray-50 {
+  background-color: #111827 !important; /* bg-gray-900 */
+}
+.dark .bg-gray-100 {
+  background-color: #374151 !important; /* bg-gray-700 */
+}
+.dark .bg-gray-200 {
+  background-color: #4b5563 !important; /* bg-gray-600 */
+}
+
+/* Primary Brand Colors (Indigo -> Yellow) */
+.dark .bg-indigo-600,
+.dark .bg-indigo-700 {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+  border: 1px solid #374151 !important;
+}
+.dark .text-indigo-600,
+.dark .text-indigo-700 {
+  color: #facc15 !important; /* text-yellow-400 */
+}
+.dark .bg-indigo-50,
+.dark .bg-indigo-100 {
+  background-color: rgba(250, 204, 21, 0.1) !important; /* bg-yellow-400/10 */
+  color: #facc15 !important;
+}
+
+/* Text Colors */
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: #ffffff !important;
+}
+.dark .text-gray-600,
+.dark .text-gray-500 {
+  color: #d1d5db !important; /* text-gray-300 */
+}
+.dark .text-indigo-100,
+.dark .text-indigo-200 {
+  color: #d1d5db !important;
+}
+
+/* Borders */
+.dark .border-gray-50,
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: #374151 !important; /* border-gray-700 */
+}
+.dark .border-indigo-100,
+.dark .border-indigo-200 {
+  border-color: #facc15 !important; /* border-yellow-400 */
+}
+
+/* Icons (Yellow) */
+.dark svg {
+  color: #facc15 !important; /* text-yellow-400 */
+}
+
+/* Specific overrides */
+.dark .bg-red-50, .dark .bg-red-100 { background-color: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; }
+.dark .text-red-600, .dark .text-red-500 { color: #ef4444 !important; }
+.dark svg.text-red-500, .dark svg.text-red-600 { color: #ef4444 !important; }
+
+.dark .bg-green-50, .dark .bg-green-100 { background-color: rgba(34, 197, 94, 0.1) !important; color: #22c55e !important; }
+.dark .text-green-600, .dark .text-green-500 { color: #22c55e !important; }
+.dark svg.text-green-500, .dark svg.text-green-600 { color: #22c55e !important; }
+
+/* Form Fields */
+.dark input, 
+.dark select, 
+.dark textarea {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+  color: #ffffff !important; /* Text white */
+  border-color: #4b5563 !important; /* border-gray-600 */
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca3af !important;
+}
+.dark input:focus, 
+.dark select:focus, 
+.dark textarea:focus {
+  border-color: #facc15 !important; /* Fields yellow focus */
+  outline: 2px solid #facc15 !important;
+  outline-offset: -2px;
+}
+
+/* Quick Actions backgrounds */
+.dark .bg-amber-50, .dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.1) !important; color: #f59e0b !important; }
+.dark .text-amber-600, .dark .text-amber-500 { color: #f59e0b !important; }
+
+.dark .bg-purple-50, .dark .bg-purple-100 { background-color: rgba(147, 51, 234, 0.1) !important; color: #a855f7 !important; }
+.dark .text-purple-600, .dark .text-purple-500 { color: #a855f7 !important; }
+
+.dark .bg-teal-50, .dark .bg-teal-100 { background-color: rgba(20, 184, 166, 0.1) !important; color: #14b8a6 !important; }
+.dark .text-teal-600, .dark .text-teal-500 { color: #14b8a6 !important; }
+
+.dark .bg-rose-50, .dark .bg-rose-100 { background-color: rgba(244, 63, 94, 0.1) !important; color: #f43f5e !important; }
+.dark .text-rose-600, .dark .text-rose-500 { color: #f43f5e !important; }
+
+.dark .bg-orange-50, .dark .bg-orange-100 { background-color: rgba(249, 115, 22, 0.1) !important; color: #f97316 !important; }
+.dark .text-orange-600, .dark .text-orange-500 { color: #f97316 !important; }
+
+.dark .bg-blue-50, .dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.1) !important; color: #3b82f6 !important; }
+.dark .text-blue-600, .dark .text-blue-500 { color: #3b82f6 !important; }
+
+.dark .bg-emerald-50, .dark .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; }
+.dark .text-emerald-600, .dark .text-emerald-500 { color: #10b981 !important; }

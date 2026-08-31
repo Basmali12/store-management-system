@@ -1,0 +1,3 @@
+#!/bin/bash
+sed -i 's/import { Search, Plus, Filter, X, ArrowUpCircle, ArrowDownCircle, Edit3 } from "lucide-react";/import { Search, Plus, Filter, X, ArrowUpCircle, ArrowDownCircle, Edit3, Edit, Trash2, AlertTriangle } from "lucide-react";/' src/merchant/inventory/screens/InventoryScreen.tsx
+sed -i 's/import { getProducts, addProduct, updateProduct, addStockMovement } from "\.\.\/services\/inventoryService";/import { getProducts, addProduct, updateProduct, addStockMovement, canDeleteProduct, deleteOrDisableProduct } from "\.\.\/services\/inventoryService";/' src/merchant/inventory/screens/InventoryScreen.tsx

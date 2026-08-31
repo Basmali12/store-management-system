@@ -1,0 +1,3 @@
+#!/bin/bash
+sed -i 's/import { ChevronRight, Phone, MessageCircle, HandCoins, ArrowDownToLine, ReceiptText, X } from "lucide-react";/import { ChevronRight, Phone, MessageCircle, HandCoins, ArrowDownToLine, ReceiptText, X, Trash2, AlertTriangle } from "lucide-react";/' src/merchant/customers/screens/CustomerDetailScreen.tsx
+sed -i 's/import { getCustomer, getDebts, addDebt, Debt, addPayment } from "..\/..\/debts\/services\/debtService";/import { getCustomer, getDebts, addDebt, Debt, addPayment, deleteDebt, deletePayment } from "..\/..\/debts\/services\/debtService";/' src/merchant/customers/screens/CustomerDetailScreen.tsx
