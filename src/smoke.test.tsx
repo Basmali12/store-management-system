@@ -10,6 +10,7 @@ import { getStoreSyncQueue } from './shared/convex/tenantSyncBridge';
 import { MerchantNavigator } from './navigation/merchant_navigation/MerchantNavigator';
 import { InstallPrompt } from './shared/components/InstallPrompt';
 import { getMerchantSession, setMerchantSession } from './shared/storage/session';
+import { addCustomer, getCustomers } from './merchant/debts/services/debtService';
 
 beforeEach(() => {
   localStorage.clear();
@@ -38,13 +39,18 @@ describe('critical UI paths', () => {
     expect(localStorage.getItem('valuable-data')).toBe('keep-me');
   });
 
-  it('opens the single official owner login directly', () => {
+  it('restores the role selection page and opens the owner login', () => {
     localStorage.removeItem('merchantSession');
     render(<App />);
 
+    expect(screen.getByRole('heading', { name: 'أهلاً بك في أبو شمس' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /صاحب المحل/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /دخول الزبون/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /صاحب المحل/ }));
     expect(screen.getByRole('heading', { name: 'تسجيل الدخول للمحل' })).toBeTruthy();
-    expect(screen.queryByText('زبون')).toBeNull();
     expect(screen.queryByText('إنشاء حساب محل جديد')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'العودة لاختيار نوع الدخول' }));
+    expect(screen.getByRole('heading', { name: 'أهلاً بك في أبو شمس' })).toBeTruthy();
   });
 
   it('uses the official merchant account and hides public registration', () => {
@@ -57,6 +63,25 @@ describe('critical UI paths', () => {
     const official = accounts.find((account: { phone?: string }) => account.phone === '07710074850');
     expect(official?.passwordCredential).toBeUndefined();
     expect(official?.password).toBeUndefined();
+  });
+
+  it('uses one registered phone field for customer login and creates no credentials', async () => {
+    setMerchantSession('merchant_official');
+    const customer = await addCustomer('زبون الاختبار', '٠٧٧١٢٣٤٥٦٧٨');
+    expect(customer.phone).toBe('07712345678');
+    expect(customer).not.toHaveProperty('customerLoginNumber');
+    expect(customer).not.toHaveProperty('customerPassword');
+    expect(getCustomers().find(item => item.id === customer.id)).toBeTruthy();
+
+    localStorage.removeItem('merchantSession');
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /دخول الزبون/ }));
+
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
+    expect(document.querySelector('input[type="password"]')).toBeNull();
+    fireEvent.change(screen.getByLabelText('رقم الهاتف المسجل'), { target: { value: '07712345678' } });
+    fireEvent.click(screen.getByRole('button', { name: 'دخول إلى حسابي' }));
+    expect(await screen.findByRole('heading', { name: 'حسابي' })).toBeTruthy();
   });
 
   it('keeps the owner signed in across app restarts until explicit logout', () => {

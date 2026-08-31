@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Store, User } from 'lucide-react';
+import { ChevronLeft, Store, User } from 'lucide-react';
 
 interface Props {
   onSelectMerchant: () => void;
@@ -9,38 +9,45 @@ interface Props {
 
 export function RoleSelectionScreen({ onSelectMerchant, onSelectCustomer }: Props) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6" dir="rtl">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">أهلاً بك</h1>
-          <p className="text-gray-500 text-sm">اختر نوع الدخول للمتابعة</p>
+    <div className="min-h-screen bg-gradient-to-b from-[#07162b] via-[#10294a] to-[#f8fafc] flex flex-col items-center justify-center p-5 font-[Cairo]" dir="rtl">
+      <div className="w-full max-w-md overflow-hidden rounded-[2.2rem] border border-white/20 bg-white/95 shadow-2xl shadow-slate-950/30">
+        <div className="bg-[#0b1b33] px-6 pb-8 pt-7 text-center text-white">
+          <img
+            src={`${import.meta.env.BASE_URL}icon-512.png`}
+            alt="شعار تطبيق أبو شمس"
+            className="mx-auto mb-4 h-24 w-24 rounded-[1.7rem] object-cover shadow-xl shadow-amber-400/20"
+          />
+          <h1 className="text-3xl font-black text-amber-300">أهلاً بك في أبو شمس</h1>
+          <p className="mt-2 text-sm text-slate-300">اختر طريقة الدخول للمتابعة</p>
         </div>
         
-        <div className="space-y-4 mt-8">
+        <div className="space-y-4 p-5">
           <button 
             onClick={onSelectMerchant}
-            className="w-full bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex items-center gap-4 hover:border-indigo-200 hover:shadow-md transition-all group active:scale-[0.98]"
+            className="role-choice-card group flex w-full items-center gap-4 rounded-[1.5rem] border border-indigo-100 bg-indigo-50/70 p-5 text-right shadow-sm transition-all hover:border-indigo-300 hover:shadow-md active:scale-[0.98]"
           >
-            <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
               <Store size={32} />
             </div>
-            <div className="text-right">
-              <h2 className="text-lg font-bold text-gray-900">صاحب المحل</h2>
-              <p className="text-xs text-gray-500 mt-1">إدارة المحل، الديون، والمخزون</p>
+            <div className="flex-1">
+              <h2 className="role-choice-title text-lg font-bold text-gray-900">صاحب المحل</h2>
+              <p className="role-choice-description text-xs text-gray-500 mt-1">إدارة المحل، الديون، والمخزون</p>
             </div>
+            <ChevronLeft className="text-indigo-300 transition-transform group-hover:-translate-x-1" />
           </button>
 
           <button 
             onClick={onSelectCustomer}
-            className="w-full bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex items-center gap-4 hover:border-teal-200 hover:shadow-md transition-all group active:scale-[0.98]"
+            className="role-choice-card group flex w-full items-center gap-4 rounded-[1.5rem] border border-teal-100 bg-teal-50/70 p-5 text-right shadow-sm transition-all hover:border-teal-300 hover:shadow-md active:scale-[0.98]"
           >
-            <div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-200">
               <User size={32} />
             </div>
-            <div className="text-right">
-              <h2 className="text-lg font-bold text-gray-900">زبون</h2>
-              <p className="text-xs text-gray-500 mt-1">متابعة حسابي والديون السابقة</p>
+            <div className="flex-1">
+              <h2 className="role-choice-title text-lg font-bold text-gray-900">دخول الزبون</h2>
+              <p className="role-choice-description text-xs text-gray-500 mt-1">مشاهدة ديوني وتسديداتي برقم الهاتف</p>
             </div>
+            <ChevronLeft className="text-teal-300 transition-transform group-hover:-translate-x-1" />
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "../../../shared/components/Card";
 import { formatCurrency } from "../../../data/mock/merchant/mockData";
-import { Search, ChevronLeft, Plus, X, Edit, Trash2, MoreVertical, AlertTriangle } from "lucide-react";
+import { Search, ChevronLeft, Plus, X, Edit, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "../../../shared/utils/utils";
 import { getCustomers, addCustomer, updateCustomer, canDeleteCustomer, deleteCustomer } from "../../debts/services/debtService";
 import { Customer } from "../../../shared/models/types";
@@ -30,9 +30,7 @@ export function AccountsScreen({
 
   const [deleteCustomerState, setDeleteCustomerState] = useState<Customer | null>(null);
   const [cannotDeleteMsg, setCannotDeleteMsg] = useState("");
-
-  const [newlyCreatedCustomer, setNewlyCreatedCustomer] =
-    useState<Customer | null>(null);
+  const [customerFormError, setCustomerFormError] = useState("");
 
   const refresh = () => setCustomers(getCustomers());
 
@@ -48,6 +46,7 @@ export function AccountsScreen({
 
   const handleEditClick = (e: React.MouseEvent, c: Customer) => {
     e.stopPropagation();
+    setCustomerFormError("");
     setEditCustomer(c);
     setEditName(c.name);
     setEditPhone(c.phone);
@@ -55,9 +54,14 @@ export function AccountsScreen({
 
   const handleSaveEdit = () => {
     if (!editCustomer || !editName) return;
-    updateCustomer(editCustomer.id, editName, editPhone);
-    setEditCustomer(null);
-    refresh();
+    try {
+      updateCustomer(editCustomer.id, editName, editPhone);
+      setCustomerFormError("");
+      setEditCustomer(null);
+      refresh();
+    } catch (error) {
+      setCustomerFormError(error instanceof Error ? error.message : "تعذر حفظ بيانات الزبون");
+    }
   };
 
   const handleDeleteClick = (e: React.MouseEvent, c: Customer) => {
@@ -79,23 +83,17 @@ export function AccountsScreen({
   };
 
   const handleAddCustomer = async () => {
-    if (!newName.trim()) return;
-    const addedCustomer = await addCustomer(newName, newPhone);
-    refresh();
-    setNewName("");
-    setNewPhone("");
-    setIsAddOpen(false);
-    onAddClosed?.();
-    setNewlyCreatedCustomer(addedCustomer);
-  };
-
-  const handleCopyAndContinue = () => {
-    if (newlyCreatedCustomer) {
-      const textToCopy = `بيانات الدخول لحسابك:\nرقم الزبون: ${newlyCreatedCustomer.customerLoginNumber}\nكلمة السر: ${newlyCreatedCustomer.customerPassword}`;
-      navigator.clipboard.writeText(textToCopy).catch(() => {});
-      const id = newlyCreatedCustomer.id;
-      setNewlyCreatedCustomer(null);
-      onCustomerSelect(id);
+    if (!newName.trim() || !newPhone.trim()) return;
+    try {
+      await addCustomer(newName, newPhone);
+      refresh();
+      setNewName("");
+      setNewPhone("");
+      setCustomerFormError("");
+      setIsAddOpen(false);
+      onAddClosed?.();
+    } catch (error) {
+      setCustomerFormError(error instanceof Error ? error.message : "تعذر إضافة الزبون");
     }
   };
 
@@ -110,7 +108,10 @@ export function AccountsScreen({
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-gray-900">حسابات الزبائن</h1>
           <button
-            onClick={() => setIsAddOpen(true)}
+            onClick={() => {
+              setCustomerFormError("");
+              setIsAddOpen(true);
+            }}
             className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100"
           >
             <Plus size={20} />
@@ -180,7 +181,10 @@ export function AccountsScreen({
           <div className="text-center py-12 flex flex-col items-center gap-3 bg-white rounded-2xl border border-gray-100">
             <p className="text-gray-400 text-sm">لا يوجد زبائن حتى الآن</p>
             <button
-              onClick={() => setIsAddOpen(true)}
+              onClick={() => {
+                setCustomerFormError("");
+                setIsAddOpen(true);
+              }}
               className="text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors"
             >
               إضافة أول زبون
@@ -197,6 +201,7 @@ export function AccountsScreen({
               <h2 className="text-lg font-bold">إضافة زبون جديد</h2>
               <button
                 onClick={() => {
+                  setCustomerFormError("");
                   setIsAddOpen(false);
                   onAddClosed?.();
                 }}
@@ -220,7 +225,7 @@ export function AccountsScreen({
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-2">
-                  رقم الهاتف (اختياري)
+                  رقم الهاتف
                 </label>
                 <input
                   type="tel"
@@ -229,47 +234,20 @@ export function AccountsScreen({
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                   placeholder="07..."
                   dir="ltr"
+                  required
                 />
               </div>
+              {customerFormError && (
+                <p className="rounded-xl bg-red-50 p-3 text-sm font-bold text-red-600">{customerFormError}</p>
+              )}
               <button
                 onClick={handleAddCustomer}
-                disabled={!newName.trim()}
+                disabled={!newName.trim() || !newPhone.trim()}
                 className="w-full bg-indigo-600 text-white font-bold rounded-xl py-3 disabled:opacity-50"
               >
                 حفظ الزبون
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Show Customer Credentials Modal */}
-      {newlyCreatedCustomer && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-2xl overflow-hidden p-6 text-center space-y-4 animate-in fade-in zoom-in-95">
-            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="text-2xl">✓</span>
-            </div>
-            <h2 className="text-xl font-bold">تمت إضافة {newlyCreatedCustomer.name}</h2>
-            <p className="text-sm text-gray-500">تم إنشاء بيانات الدخول لبوابة الزبائن تلقائياً. يرجى مشاركتها مع الزبون.</p>
-            
-            <div className="bg-gray-50 p-4 rounded-xl space-y-3 text-right">
-              <div>
-                <p className="text-xs text-gray-400 mb-1">رقم الزبون</p>
-                <p className="font-bold text-lg text-gray-800 tracking-widest" dir="ltr">{newlyCreatedCustomer.customerLoginNumber}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-1">كلمة السر</p>
-                <p className="font-bold text-lg text-gray-800 tracking-widest" dir="ltr">{newlyCreatedCustomer.customerPassword}</p>
-              </div>
-            </div>
-
-            <button
-              onClick={handleCopyAndContinue}
-              className="w-full bg-indigo-600 text-white font-bold rounded-xl py-3 mt-4"
-            >
-              نسخ البيانات والمتابعة
-            </button>
           </div>
         </div>
       )}
@@ -281,7 +259,10 @@ export function AccountsScreen({
             <div className="p-4 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-lg font-bold">تعديل بيانات الزبون</h2>
               <button
-                onClick={() => setEditCustomer(null)}
+                onClick={() => {
+                  setCustomerFormError("");
+                  setEditCustomer(null);
+                }}
                 className="p-2 text-gray-400 hover:bg-gray-50 rounded-full"
               >
                 <X size={20} />
@@ -309,11 +290,15 @@ export function AccountsScreen({
                   onChange={(e) => setEditPhone(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                   dir="ltr"
+                  required
                 />
               </div>
+              {customerFormError && (
+                <p className="rounded-xl bg-red-50 p-3 text-sm font-bold text-red-600">{customerFormError}</p>
+              )}
               <button
                 onClick={handleSaveEdit}
-                disabled={!editName.trim()}
+                disabled={!editName.trim() || !editPhone.trim()}
                 className="w-full bg-indigo-600 text-white font-bold rounded-xl py-3 disabled:opacity-50"
               >
                 حفظ التعديلات

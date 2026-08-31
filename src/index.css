@@ -56,6 +56,17 @@
   color: #d1d5db !important;
 }
 
+/* The public role cards stay light in both themes, so their copy must stay dark. */
+.dark .role-choice-card {
+  background-color: #f8fafc !important;
+}
+.dark .role-choice-title {
+  color: #0f172a !important;
+}
+.dark .role-choice-description {
+  color: #475569 !important;
+}
+
 /* Borders */
 .dark .border-gray-50,
 .dark .border-gray-100,

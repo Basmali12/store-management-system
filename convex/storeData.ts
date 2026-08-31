@@ -15,12 +15,56 @@ const validateRecord = (key: string, value: string) => {
   if (value.length > MAX_VALUE_LENGTH) throw new ConvexError('VALUE_TOO_LARGE');
 };
 
+const parseRecord = <T>(value: string | undefined, fallback: T): T => {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+};
+
+const normalizedPhone = (value: string) => value.replace(/\D/g, '');
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
     await requireOfficialAccount(ctx);
     const records = await ctx.db.query('storeRecords').collect();
     return records.map(({ key, value, updatedAt }) => ({ key, value, updatedAt }));
+  },
+});
+
+// The customer portal is intentionally phone-only. It returns only the matched
+// customer's own record and transactions, never the complete store dataset.
+export const customerPortalByPhone = query({
+  args: { phone: v.string() },
+  handler: async (ctx, { phone }) => {
+    const requestedPhone = normalizedPhone(phone);
+    if (requestedPhone.length < 10 || requestedPhone.length > 15) return null;
+
+    const records = await ctx.db.query('storeRecords').collect();
+    const values = new Map(records.map(record => [record.key, record.value]));
+    const customers = parseRecord<Array<{
+      id: string;
+      name: string;
+      phone: string;
+      balance: number;
+      lastActivity: string;
+      totalTaken: number;
+      totalPaid: number;
+      status: string;
+    }>>(values.get('merchant_customers'), []);
+    const customer = customers.find(item => normalizedPhone(String(item.phone || '')) === requestedPhone);
+    if (!customer) return null;
+
+    const debts = parseRecord<Record<string, unknown[]>>(values.get('merchant_debts'), {});
+    const payments = parseRecord<Record<string, unknown[]>>(values.get('merchant_payments'), {});
+    return {
+      customer,
+      debts: debts[customer.id] || [],
+      payments: payments[customer.id] || [],
+    };
   },
 });
 

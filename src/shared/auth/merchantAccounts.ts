@@ -111,15 +111,20 @@ export const hardenLegacyMerchantAccounts = async () => {
   localStorage.removeItem('mock_merchants');
 };
 
-export const hardenLegacyCustomerAccounts = async (merchantId: string) => {
+export const removeLegacyCustomerCredentials = (merchantId: string) => {
   const stored = tenantGetItem('merchant_customers', merchantId);
   if (!stored) return;
   const customers = JSON.parse(stored);
   let changed = false;
   for (const customer of customers) {
-    if (customer.customerPassword && !customer.customerPasswordCredential) {
-      customer.customerPasswordCredential = await createPasswordCredential(customer.customerPassword);
-      delete customer.customerPassword;
+    for (const key of ['customerLoginNumber', 'customerPassword', 'customerPasswordCredential']) {
+      if (key in customer) {
+        delete customer[key];
+        changed = true;
+      }
+    }
+    if (customer.phone && typeof customer.phone !== 'string') {
+      customer.phone = String(customer.phone);
       changed = true;
     }
   }

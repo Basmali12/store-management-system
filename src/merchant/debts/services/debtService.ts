@@ -3,8 +3,8 @@ import { Customer } from '../../../shared/models/types';
 import { tenantGetItem, tenantSetItem } from '../../../shared/storage/tenantStorage';
 import { createId } from '../../../shared/utils/id';
 import { todayLocalDateKey } from '../../../shared/utils/date';
-import { createPasswordCredential } from '../../../shared/security/password';
 import { addAuditEntry } from '../../../shared/audit/auditService';
+import { isValidCustomerPhone, normalizePhone } from '../../../shared/utils/phone';
 
 export interface Debt {
   debtId: string;
@@ -49,8 +49,13 @@ export const updateCustomer = (id: string, name: string, phone: string) => {
   const customers = getCustomers();
   const cIdx = customers.findIndex(c => c.id === id);
   if (cIdx > -1) {
+    const normalizedPhone = normalizePhone(phone);
+    if (!isValidCustomerPhone(normalizedPhone)) throw new Error('أدخل رقم هاتف صحيح للزبون');
+    if (customers.some(customer => customer.id !== id && normalizePhone(customer.phone) === normalizedPhone)) {
+      throw new Error('رقم الهاتف مسجل لزبون آخر');
+    }
     customers[cIdx].name = name;
-    customers[cIdx].phone = phone;
+    customers[cIdx].phone = normalizedPhone;
     saveCustomers(customers);
     addAuditEntry({ action: 'UPDATE', entity: 'CUSTOMER', entityId: id, description: `تعديل بيانات الزبون: ${name}` });
   }
@@ -84,34 +89,27 @@ export const deleteCustomer = (id: string): boolean => {
   return true;
 };
 
-const randomDigits = (length: number) => {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(bytes, value => String(value % 10)).join('');
-};
-
 export const addCustomer = async (name: string, phone: string): Promise<Customer> => {
   const customers = getCustomers();
-  
-  // Generate random 8 digit login number and 6 digit password
-  let customerLoginNumber = randomDigits(8);
-  while (customers.some(customer => customer.customerLoginNumber === customerLoginNumber)) customerLoginNumber = randomDigits(8);
-  const customerPassword = randomDigits(6);
+  const normalizedPhone = normalizePhone(phone);
+  if (!isValidCustomerPhone(normalizedPhone)) throw new Error('أدخل رقم هاتف صحيح للزبون');
+  if (customers.some(customer => normalizePhone(customer.phone) === normalizedPhone)) {
+    throw new Error('رقم الهاتف مسجل لزبون آخر');
+  }
 
   const newCustomer: Customer = {
     id: createId('c'),
     name,
-    phone,
+    phone: normalizedPhone,
     balance: 0,
     lastActivity: todayLocalDateKey(),
     totalTaken: 0,
     totalPaid: 0,
     status: 'active',
-    customerLoginNumber,
-    customerPasswordCredential: await createPasswordCredential(customerPassword),
   };
   saveCustomers([newCustomer, ...customers]);
   addAuditEntry({ action: 'CREATE', entity: 'CUSTOMER', entityId: newCustomer.id, description: `إضافة زبون: ${name}` });
-  return { ...newCustomer, customerPassword };
+  return newCustomer;
 };
 
 export const getDebts = (customerId: string): Debt[] => {

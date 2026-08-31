@@ -7,9 +7,6 @@ export interface Customer {
   status: 'active' | 'inactive';
   totalTaken: number;
   totalPaid: number;
-  customerLoginNumber?: string;
-  customerPassword?: string; // one-time display only; never persisted after migration
-  customerPasswordCredential?: string;
   merchantId?: string;
 }
 

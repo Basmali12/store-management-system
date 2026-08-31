@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
-import { Store } from 'lucide-react';
+import { ChevronRight, Store } from 'lucide-react';
 import { authenticateOfficialMerchant } from '../../../../shared/auth/serverAuth';
 
 interface Props {
   onLogin: (merchantId: string) => void;
+  onBack: () => void;
 }
 
-export function MerchantLoginScreen({ onLogin }: Props) {
+export function MerchantLoginScreen({ onLogin, onBack }: Props) {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,6 +31,16 @@ export function MerchantLoginScreen({ onLogin }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-[Cairo]" dir="rtl">
+      <div className="p-4">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="العودة لاختيار نوع الدخول"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-600 shadow-sm hover:bg-gray-100"
+        >
+          <ChevronRight size={24} />
+        </button>
+      </div>
       <div className="flex-1 flex flex-col justify-center p-6 max-w-md w-full mx-auto -mt-10">
         <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center text-white mb-6 shadow-lg shadow-indigo-200">
           <Store size={40} />
