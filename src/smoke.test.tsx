@@ -9,6 +9,7 @@ import { tenantGetItem, tenantRemoveItem, tenantSetItem } from './shared/storage
 import { getStoreSyncQueue } from './shared/convex/tenantSyncBridge';
 import { MerchantNavigator } from './navigation/merchant_navigation/MerchantNavigator';
 import { InstallPrompt } from './shared/components/InstallPrompt';
+import { getMerchantSession, setMerchantSession } from './shared/storage/session';
 
 beforeEach(() => {
   localStorage.clear();
@@ -56,6 +57,18 @@ describe('critical UI paths', () => {
     const official = accounts.find((account: { phone?: string }) => account.phone === '07710074850');
     expect(official?.passwordCredential).toBeUndefined();
     expect(official?.password).toBeUndefined();
+  });
+
+  it('keeps the owner signed in across app restarts until explicit logout', () => {
+    setMerchantSession('merchant_official');
+    render(<App />);
+    expect(getMerchantSession()).toBe('merchant_official');
+    expect(screen.queryByRole('heading', { name: 'تسجيل الدخول للمحل' })).toBeNull();
+
+    cleanup();
+    render(<App />);
+    expect(getMerchantSession()).toBe('merchant_official');
+    expect(screen.queryByRole('heading', { name: 'تسجيل الدخول للمحل' })).toBeNull();
   });
 
   it('keeps offline writes locally and deduplicates the pending sync queue', () => {

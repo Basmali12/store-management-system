@@ -17,6 +17,12 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
     trustedOrigins: [siteUrl],
     database: authComponent.adapter(ctx),
     disabledPaths: ['/is-username-available'],
+    session: {
+      // The application belongs to one owner. Keep the server session alive
+      // for installed-app use and refresh it while the owner is active.
+      expiresIn: 60 * 60 * 24 * 365 * 10,
+      updateAge: 60 * 60 * 24,
+    },
     emailAndPassword: {
       enabled: true,
       disableSignUp: process.env.ALLOW_OFFICIAL_SIGNUP !== 'true',

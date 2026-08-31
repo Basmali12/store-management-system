@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useConvex, useConvexAuth, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { clearMerchantSession, getMerchantSession } from '../storage/session';
+import { getMerchantSession } from '../storage/session';
 import { TENANT_DATA_KEYS, tenantStorageKey } from '../storage/tenantStorage';
 import {
   acknowledgeStoreSyncOperations,
@@ -16,7 +16,7 @@ const REFRESH_INTERVAL = 5 * 60 * 1000;
 
 export function StoreDataSyncGate({ children }: { children: ReactNode }) {
   const convex = useConvex();
-  const { isLoading, isAuthenticated } = useConvexAuth();
+  const { isAuthenticated } = useConvexAuth();
   const applyBatch = useMutation(api.storeData.applyBatch);
   const importInitial = useMutation(api.storeData.importInitial);
   const merchantId = getMerchantSession();
@@ -115,15 +115,6 @@ export function StoreDataSyncGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (online && isAuthenticated && merchantId) void synchronize();
   }, [isAuthenticated, merchantId, online, revision, synchronize]);
-
-  useEffect(() => {
-    // Losing connectivity never logs the owner out: cached data remains usable.
-    // An expired server session is enforced only while the network is available.
-    if (!isLoading && online && merchantId && !isAuthenticated) {
-      clearMerchantSession();
-      window.location.reload();
-    }
-  }, [isAuthenticated, isLoading, merchantId, online]);
 
   const labels: Record<SyncState, string> = {
     offline: 'أوفلاين — محفوظ محليًا',
