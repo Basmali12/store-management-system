@@ -14,7 +14,11 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 
   return betterAuth({
     baseURL: process.env.CONVEX_SITE_URL,
-    trustedOrigins: [siteUrl],
+    trustedOrigins: [
+      siteUrl,
+      'http://127.0.0.1:3000',
+      'http://localhost:3000',
+    ],
     database: authComponent.adapter(ctx),
     disabledPaths: ['/is-username-available'],
     session: {
