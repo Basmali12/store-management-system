@@ -11,6 +11,9 @@ import { MerchantNavigator } from './navigation/merchant_navigation/MerchantNavi
 import { InstallPrompt } from './shared/components/InstallPrompt';
 import { getMerchantSession, setMerchantSession } from './shared/storage/session';
 import { addCustomer, getCustomers } from './merchant/debts/services/debtService';
+import { SettingsScreen } from './merchant/settings/screens/SettingsScreen';
+import { UpdatePrompt } from './shared/components/UpdatePrompt';
+import { APPLIED_APP_VERSION_KEY } from './shared/update/appVersion';
 
 beforeEach(() => {
   localStorage.clear();
@@ -154,5 +157,25 @@ describe('critical UI paths', () => {
     expect(await screen.findByRole('heading', { name: 'ثبّت تطبيق أبو شمس' }, { timeout: 1500 })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'تحميل التطبيق' }));
     await waitFor(() => expect(prompt).toHaveBeenCalledOnce());
+  });
+
+  it('saves the central app version from settings for synchronization', () => {
+    render(<SettingsScreen onBack={() => undefined} />);
+    const input = screen.getByLabelText('رقم الإصدار');
+    fireEvent.change(input, { target: { value: '1.2.0' } });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ واعتماد الإصدار' }));
+
+    expect(JSON.parse(tenantGetItem('merchant_app_version') || 'null')).toBe('1.2.0');
+    expect(screen.getByText(/سيظهر تنبيه التحديث/)).toBeTruthy();
+    expect(getStoreSyncQueue().some(operation => operation.key === 'merchant_app_version')).toBe(true);
+  });
+
+  it('shows a persistent update badge until the new version is applied', () => {
+    localStorage.setItem(APPLIED_APP_VERSION_KEY, '1.0.0');
+    render(<UpdatePrompt availableVersion="1.1.0" />);
+
+    expect(screen.getByRole('heading', { name: 'يوجد تحديث جديد' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'لاحقًا' }));
+    expect(screen.getByRole('button', { name: 'يوجد تحديث جديد' })).toBeTruthy();
   });
 });

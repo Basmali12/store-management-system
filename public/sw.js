@@ -1,5 +1,5 @@
-const CACHE_NAME = 'store-owner-offline-v2';
-const APP_SHELL = ['./', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'store-owner-offline-v3';
+const APP_SHELL = ['./', './manifest.webmanifest', './version.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
@@ -15,6 +15,10 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
   if (event.data?.type !== 'CACHE_URLS' || !Array.isArray(event.data.urls)) return;
   const sameOriginUrls = event.data.urls.filter(url => {
     try {
@@ -34,6 +38,21 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (url.pathname.endsWith('/version.json')) {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+        .then(response => {
+          if (response.ok) {
+            const copy = response.clone();
+            void caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request)),
+    );
+    return;
+  }
 
   if (event.request.mode === 'navigate') {
     event.respondWith(

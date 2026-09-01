@@ -5,7 +5,7 @@ export const TENANT_DATA_KEYS = [
   'merchant_customers', 'merchant_debts', 'merchant_payments',
   'merchant_suppliers_new', 'merchant_supplier_payments', 'merchant_products', 'merchant_stock_movements',
   'merchant_sales', 'merchant_purchases', 'merchant_expenses',
-  'merchant_product_field_settings', 'merchant_activity_log'
+  'merchant_product_field_settings', 'merchant_activity_log', 'merchant_app_version'
 ] as const;
 
 export const tenantStorageKey = (key: string, merchantId?: string) => {

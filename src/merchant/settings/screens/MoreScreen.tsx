@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShoppingBag, FileMinus, PieChart, Users, History, DatabaseBackup, Palette, Settings, ChevronLeft, Package } from 'lucide-react';
 import { Card } from '../../../shared/components/Card';
 import { clearMerchantSession } from '../../../shared/storage/session';
 import { cn } from '../../../shared/utils/utils';
 import { signOutOfficialMerchant } from '../../../shared/auth/serverAuth';
+import { APP_VERSION_CHANGED_EVENT, getConfiguredAppVersion } from '../../../shared/update/appVersion';
 
 interface Props { onNavigate?: (route: string) => void; }
 
 export function MoreScreen({ onNavigate }: Props) {
+  const [appVersion, setAppVersion] = useState(() => getConfiguredAppVersion());
+
+  useEffect(() => {
+    const handleVersionChange = (event: Event) => setAppVersion((event as CustomEvent<string>).detail);
+    window.addEventListener(APP_VERSION_CHANGED_EVENT, handleVersionChange);
+    return () => window.removeEventListener(APP_VERSION_CHANGED_EVENT, handleVersionChange);
+  }, []);
+
   const sections = [
     {
       title: 'العمليات',
@@ -74,7 +83,7 @@ export function MoreScreen({ onNavigate }: Props) {
           >
             تسجيل خروج
           </button>
-          <p className="text-xs text-gray-400 font-semibold">إصدار التطبيق 1.0.0</p>
+          <p className="text-xs text-gray-400 font-semibold">إصدار التطبيق {appVersion}</p>
         </div>
 
       </div>
