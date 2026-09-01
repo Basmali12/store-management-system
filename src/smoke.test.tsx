@@ -14,6 +14,7 @@ import { addCustomer, getCustomers } from './merchant/debts/services/debtService
 import { SettingsScreen } from './merchant/settings/screens/SettingsScreen';
 import { UpdatePrompt } from './shared/components/UpdatePrompt';
 import { APPLIED_APP_VERSION_KEY } from './shared/update/appVersion';
+import { updateSale } from './merchant/sales/services/salesService';
 
 beforeEach(() => {
   localStorage.clear();
@@ -32,6 +33,62 @@ describe('critical UI paths', () => {
     expect(screen.getByLabelText('رقم الزبون')).toBeTruthy();
     expect(screen.getByLabelText(/العنوان/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'تأكيد وإتمام البيع' })).toBeTruthy();
+  });
+
+  it('shares a sale on WhatsApp and safely edits its quantity and customer details', () => {
+    tenantSetItem('merchant_products', JSON.stringify([{
+      productId: 'p-edit', name: 'ببسي', category: 'مشروبات', purchasePrice: 500,
+      salePrice: 1000, quantity: 8, lowStockLimit: 1, createdAt: '', updatedAt: '',
+    }]));
+    tenantSetItem('merchant_sales', JSON.stringify([{
+      saleId: 'sale-edit-123456', saleType: 'CASH', cashCustomer: { name: 'علي', phone: '07712345678' },
+      items: [{ productId: 'p-edit', productName: 'ببسي', quantity: 2, unitPrice: 1000, totalPrice: 2000, returnedQuantity: 0 }],
+      subtotal: 2000, total: 2000, createdAt: new Date().toISOString(), refundedTotal: 0, status: 'COMPLETED',
+    }]));
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    render(<SalesScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'مشاركة عبر واتساب' }));
+    expect(open).toHaveBeenCalledWith(expect.stringContaining('https://wa.me/9647712345678'), '_blank', 'noopener,noreferrer');
+
+    fireEvent.click(screen.getByRole('button', { name: 'تعديل المعاملة' }));
+    fireEvent.change(screen.getByLabelText('تعديل اسم الزبون'), { target: { value: 'علي محمد' } });
+    fireEvent.change(screen.getByLabelText('كمية ببسي'), { target: { value: '3' } });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ التعديل' }));
+
+    const sale = JSON.parse(tenantGetItem('merchant_sales') || '[]')[0];
+    const product = JSON.parse(tenantGetItem('merchant_products') || '[]')[0];
+    expect(sale.cashCustomer.name).toBe('علي محمد');
+    expect(sale.total).toBe(3000);
+    expect(product.quantity).toBe(7);
+    open.mockRestore();
+  });
+
+  it('keeps credit balance, debt and stock consistent when editing an unpaid sale', () => {
+    tenantSetItem('merchant_products', JSON.stringify([{
+      productId: 'p-credit-edit', name: 'مادة', category: '', purchasePrice: 50,
+      salePrice: 100, quantity: 8, lowStockLimit: 1, createdAt: '', updatedAt: '',
+    }]));
+    tenantSetItem('merchant_customers', JSON.stringify([{
+      id: 'c-edit', name: 'زبون آجل', phone: '07711111111', balance: 200,
+      totalTaken: 200, totalPaid: 0, lastActivity: '', status: 'active',
+    }]));
+    tenantSetItem('merchant_debts', JSON.stringify({ 'c-edit': [{
+      debtId: 'd-edit', customerId: 'c-edit', description: 'مادة', quantity: 2,
+      amount: 200, remainingAmount: 200, status: 'OPEN', createdAt: '', saleId: 'sale-credit-edit',
+    }] }));
+    tenantSetItem('merchant_sales', JSON.stringify([{
+      saleId: 'sale-credit-edit', customerId: 'c-edit', saleType: 'CREDIT',
+      items: [{ productId: 'p-credit-edit', productName: 'مادة', quantity: 2, unitPrice: 100, totalPrice: 200, returnedQuantity: 0 }],
+      subtotal: 200, total: 200, createdAt: new Date().toISOString(), refundedTotal: 0, status: 'COMPLETED',
+    }]));
+
+    updateSale('sale-credit-edit', { items: [{ productId: 'p-credit-edit', quantity: 3, unitPrice: 120 }] });
+
+    expect(JSON.parse(tenantGetItem('merchant_products') || '[]')[0].quantity).toBe(7);
+    expect(JSON.parse(tenantGetItem('merchant_customers') || '[]')[0].balance).toBe(360);
+    expect(JSON.parse(tenantGetItem('merchant_debts') || '{}')['c-edit'][0].remainingAmount).toBe(360);
+    expect(JSON.parse(tenantGetItem('merchant_sales') || '[]')[0].total).toBe(360);
   });
 
   it('opens a new purchase without a hooks crash', () => {

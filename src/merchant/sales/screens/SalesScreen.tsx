@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingCart, ArrowRight, Minus, Check, Clock, Trash2, AlertTriangle, Printer, RotateCcw } from 'lucide-react';
+import { Plus, Search, ShoppingCart, ArrowRight, Minus, Check, Clock, Trash2, AlertTriangle, Printer, RotateCcw, MessageCircle, Pencil } from 'lucide-react';
 import { Card } from '../../../shared/components/Card';
 import { formatCurrency } from '../../../data/mock/merchant/mockData';
 import { cn } from '../../../shared/utils/utils';
-import { getSales, createSale, deleteSale, refundSale } from '../services/salesService';
+import { getSales, createSale, deleteSale, refundSale, updateSale } from '../services/salesService';
 import { Sale, SaleItem } from '../models/types';
 import { getProducts } from '../../inventory/services/inventoryService';
 import { getCustomers } from '../../debts/services/debtService';
@@ -244,6 +244,11 @@ export function SalesScreen({ onBack: _onBack }: { onBack?: () => void } = {}) {
   const [deleteSaleState, setDeleteSaleState] = useState<Sale | null>(null);
   const [refundSaleState, setRefundSaleState] = useState<Sale | null>(null);
   const [refundQuantities, setRefundQuantities] = useState<Record<string, number>>({});
+  const [editSaleState, setEditSaleState] = useState<Sale | null>(null);
+  const [editItems, setEditItems] = useState<SaleItem[]>([]);
+  const [editCashName, setEditCashName] = useState('');
+  const [editCashPhone, setEditCashPhone] = useState('');
+  const [editCashAddress, setEditCashAddress] = useState('');
   const [actionError, setActionError] = useState('');
 
   useEffect(() => {
@@ -289,6 +294,54 @@ export function SalesScreen({ onBack: _onBack }: { onBack?: () => void } = {}) {
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'تعذر تسجيل المرتجع');
     }
+  };
+
+  const openEditSale = (sale: Sale) => {
+    setEditSaleState(sale);
+    setEditItems(sale.items.map(item => ({ ...item })));
+    setEditCashName(sale.cashCustomer?.name || '');
+    setEditCashPhone(sale.cashCustomer?.phone || '');
+    setEditCashAddress(sale.cashCustomer?.address || '');
+    setActionError('');
+  };
+
+  const handleEditSale = () => {
+    if (!editSaleState) return;
+    try {
+      updateSale(editSaleState.saleId, {
+        items: editItems,
+        cashCustomer: editSaleState.saleType === 'CASH' ? {
+          name: editCashName,
+          phone: editCashPhone,
+          address: editCashAddress,
+        } : undefined,
+      });
+      setEditSaleState(null);
+      setSales(getSales());
+      setActionError('');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'تعذر تعديل البيع');
+    }
+  };
+
+  const shareOnWhatsApp = (sale: Sale) => {
+    const creditCustomer = sale.saleType === 'CREDIT' ? customers.find(customer => customer.id === sale.customerId) : undefined;
+    const customerName = sale.cashCustomer?.name || creditCustomer?.name || 'الزبون';
+    const phone = (sale.cashCustomer?.phone || creditCustomer?.phone || '').replace(/\D/g, '');
+    if (!phone) {
+      setActionError('لا يوجد رقم هاتف مسجل لهذه المعاملة');
+      return;
+    }
+    const internationalPhone = phone.startsWith('0') ? `964${phone.slice(1)}` : phone;
+    const itemLines = sale.items.map(item => `• ${item.productName} × ${item.quantity} = ${formatCurrency(item.totalPrice)}`).join('\n');
+    const message = [
+      `مرحبًا ${customerName}`,
+      `تفاصيل عملية البيع رقم #${sale.saleId.slice(-6)}`,
+      itemLines,
+      `الإجمالي: ${formatCurrency(sale.total)}`,
+      `التاريخ: ${new Date(sale.createdAt).toLocaleString('ar-IQ')}`,
+    ].join('\n');
+    window.open(`https://wa.me/${internationalPhone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
   const printReceipt = (sale: Sale) => {
@@ -345,11 +398,7 @@ export function SalesScreen({ onBack: _onBack }: { onBack?: () => void } = {}) {
                 >
                   <Trash2 size={16} />
                 </button>
-                <div className="absolute top-4 right-4 flex gap-1">
-                  <button onClick={() => printReceipt(sale)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="طباعة إيصال"><Printer size={16}/></button>
-                  <button onClick={() => { setRefundSaleState(sale); setRefundQuantities({}); setActionError(''); }} className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg" title="مرتجع"><RotateCcw size={16}/></button>
-                </div>
-                <div className="flex justify-between items-start mb-2 pr-10">
+                <div className="flex justify-between items-start mb-2 pl-10">
                   <div>
                     <span className="text-[10px] text-gray-400">#{sale.saleId.substring(sale.saleId.length - 6)}</span>
                     <p className="text-sm font-bold text-gray-900 mt-0.5">
@@ -367,6 +416,12 @@ export function SalesScreen({ onBack: _onBack }: { onBack?: () => void } = {}) {
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
                   <p className="text-xs text-gray-500">{sale.items.length} منتجات</p>
                   <p className="text-sm font-black text-indigo-600">{formatCurrency(sale.total)}</p>
+                </div>
+                <div className="mt-3 grid grid-cols-[1fr_1fr_auto_auto] gap-2 border-t border-gray-100 pt-3">
+                  <button onClick={() => shareOnWhatsApp(sale)} className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-2 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100" aria-label="مشاركة عبر واتساب"><MessageCircle size={16}/> واتساب</button>
+                  <button onClick={() => openEditSale(sale)} className="flex items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-2 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100" aria-label="تعديل المعاملة"><Pencil size={16}/> تعديل</button>
+                  <button onClick={() => printReceipt(sale)} className="rounded-lg bg-gray-50 p-2 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600" title="طباعة إيصال" aria-label="طباعة إيصال"><Printer size={17}/></button>
+                  <button onClick={() => { setRefundSaleState(sale); setRefundQuantities({}); setActionError(''); }} className="rounded-lg bg-gray-50 p-2 text-gray-500 hover:bg-orange-50 hover:text-orange-600" title="مرتجع" aria-label="مرتجع"><RotateCcw size={17}/></button>
                 </div>
               </Card>
             ))}
@@ -426,6 +481,45 @@ export function SalesScreen({ onBack: _onBack }: { onBack?: () => void } = {}) {
             </div>
             {actionError && <p className="text-xs text-red-600 mt-3">{actionError}</p>}
             <div className="flex gap-3 mt-5"><button onClick={() => { setRefundSaleState(null); setActionError(''); }} className="flex-1 bg-gray-100 rounded-xl py-3 font-bold">إلغاء</button><button onClick={handleRefund} className="flex-1 bg-orange-600 text-white rounded-xl py-3 font-bold">تأكيد المرتجع</button></div>
+          </div>
+        </div>
+      )}
+      {editSaleState && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4" dir="rtl">
+          <div className="bg-white w-full max-w-md rounded-2xl p-5 max-h-[88vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-2">تعديل المعاملة</h2>
+            <p className="text-xs text-gray-500 mb-4">يمكن تعديل بيانات الزبون والكميات والأسعار. يتم تصحيح المخزون والرصيد تلقائيًا.</p>
+
+            {editSaleState.saleType === 'CASH' ? (
+              <div className="space-y-3 mb-4">
+                <label className="block text-xs font-bold text-gray-600">اسم الزبون<input aria-label="تعديل اسم الزبون" value={editCashName} onChange={event => setEditCashName(event.target.value)} className="mt-1 w-full border rounded-xl p-3 text-sm" /></label>
+                <label className="block text-xs font-bold text-gray-600">رقم الزبون<input aria-label="تعديل رقم الزبون" type="tel" dir="ltr" value={editCashPhone} onChange={event => setEditCashPhone(event.target.value)} className="mt-1 w-full border rounded-xl p-3 text-sm text-left" /></label>
+                <label className="block text-xs font-bold text-gray-600">العنوان (اختياري)<input aria-label="تعديل عنوان الزبون" value={editCashAddress} onChange={event => setEditCashAddress(event.target.value)} className="mt-1 w-full border rounded-xl p-3 text-sm" /></label>
+              </div>
+            ) : (
+              <p className="mb-4 rounded-xl bg-orange-50 p-3 text-sm font-bold text-orange-700">الزبون: {getCustomerName(editSaleState.customerId)}</p>
+            )}
+
+            <div className="space-y-3">
+              {editItems.map(item => (
+                <div key={item.productId} className="rounded-xl bg-gray-50 p-3">
+                  <p className="mb-2 text-sm font-bold text-gray-900">{item.productName}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="text-xs font-bold text-gray-600">الكمية<input aria-label={`كمية ${item.productName}`} type="number" min="1" step="1" value={item.quantity} onChange={event => setEditItems(items => items.map(candidate => candidate.productId === item.productId ? { ...candidate, quantity: Number(event.target.value), totalPrice: Number(event.target.value) * candidate.unitPrice } : candidate))} className="mt-1 w-full border rounded-lg p-2" /></label>
+                    <label className="text-xs font-bold text-gray-600">سعر الوحدة<input aria-label={`سعر ${item.productName}`} type="number" min="0" value={item.unitPrice} onChange={event => setEditItems(items => items.map(candidate => candidate.productId === item.productId ? { ...candidate, unitPrice: Number(event.target.value), totalPrice: candidate.quantity * Number(event.target.value) } : candidate))} className="mt-1 w-full border rounded-lg p-2" /></label>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-indigo-50 p-3">
+              <span className="text-sm font-bold text-gray-700">الإجمالي الجديد</span>
+              <span className="font-black text-indigo-700">{formatCurrency(editItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0))}</span>
+            </div>
+            {actionError && <p className="text-xs text-red-600 mt-3 rounded-lg bg-red-50 p-2">{actionError}</p>}
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => { setEditSaleState(null); setActionError(''); }} className="flex-1 bg-gray-100 rounded-xl py-3 font-bold">إلغاء</button>
+              <button onClick={handleEditSale} className="flex-1 bg-blue-600 text-white rounded-xl py-3 font-bold">حفظ التعديل</button>
+            </div>
           </div>
         </div>
       )}
