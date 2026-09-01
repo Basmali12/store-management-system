@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, Store } from 'lucide-react';
 import { authenticateOfficialMerchant } from '../../../../shared/auth/serverAuth';
+import { OFFICIAL_MERCHANT_PHONE } from '../../../../shared/auth/merchantAccounts';
 
 interface Props {
   onLogin: (merchantId: string) => void;
@@ -9,7 +10,6 @@ interface Props {
 }
 
 export function MerchantLoginScreen({ onLogin, onBack }: Props) {
-  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -17,7 +17,7 @@ export function MerchantLoginScreen({ onLogin, onBack }: Props) {
     e.preventDefault();
     
     try {
-      const account = await authenticateOfficialMerchant(id.trim(), password);
+      const account = await authenticateOfficialMerchant(OFFICIAL_MERCHANT_PHONE, password);
       if (account) {
         setError('');
         onLogin(account.id);
@@ -46,7 +46,7 @@ export function MerchantLoginScreen({ onLogin, onBack }: Props) {
           <Store size={40} />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">تسجيل الدخول للمحل</h1>
-        <p className="text-sm text-gray-500 mb-8">أدخل رقم الهاتف الرسمي وكلمة المرور للمتابعة</p>
+        <p className="text-sm text-gray-500 mb-8">أدخل كلمة المرور للمتابعة</p>
 
         {error && (
           <div className="bg-red-50 text-red-600 text-sm font-bold p-3 rounded-xl mb-4 border border-red-100">
@@ -56,20 +56,9 @@ export function MerchantLoginScreen({ onLogin, onBack }: Props) {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2">رقم الهاتف</label>
+            <label htmlFor="owner-password" className="block text-xs font-bold text-gray-700 mb-2">كلمة المرور</label>
             <input 
-              type="text" 
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              placeholder="رقم الهاتف الرسمي"
-              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl p-4 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-left" 
-              dir="ltr" 
-              required 
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2">كلمة المرور</label>
-            <input 
+              id="owner-password"
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}

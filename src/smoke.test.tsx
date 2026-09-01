@@ -48,6 +48,8 @@ describe('critical UI paths', () => {
     expect(screen.getByRole('button', { name: /دخول الزبون/ })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /صاحب المحل/ }));
     expect(screen.getByRole('heading', { name: 'تسجيل الدخول للمحل' })).toBeTruthy();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(document.querySelectorAll('input[type="password"]')).toHaveLength(1);
     expect(screen.queryByText('إنشاء حساب محل جديد')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'العودة لاختيار نوع الدخول' }));
     expect(screen.getByRole('heading', { name: 'أهلاً بك في أبو شمس' })).toBeTruthy();

@@ -14,7 +14,7 @@ export interface MerchantAccount {
 }
 
 const STORAGE_KEY = 'merchant_accounts';
-const OFFICIAL_MERCHANT_PHONE = '07710074850';
+export const OFFICIAL_MERCHANT_PHONE = '07710074850';
 
 const normalizeLegacyAccounts = (): MerchantAccount[] => {
   const current = localStorage.getItem(STORAGE_KEY);
