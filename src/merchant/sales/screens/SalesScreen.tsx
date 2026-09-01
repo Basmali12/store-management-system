@@ -18,6 +18,9 @@ function NewSaleView({ onBack }: { onBack: () => void }) {
   const [search, setSearch] = useState('');
   const [saleType, setSaleType] = useState<'CASH' | 'CREDIT'>('CASH');
   const [customerId, setCustomerId] = useState('');
+  const [cashCustomerName, setCashCustomerName] = useState('');
+  const [cashCustomerPhone, setCashCustomerPhone] = useState('');
+  const [cashCustomerAddress, setCashCustomerAddress] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -77,9 +80,15 @@ function NewSaleView({ onBack }: { onBack: () => void }) {
     setError('');
     if (cart.length === 0) return setError('السلة فارغة');
     if (saleType === 'CREDIT' && !customerId) return setError('اختر الزبون للبيع الآجل');
+    if (saleType === 'CASH' && !cashCustomerName.trim()) return setError('أدخل اسم الزبون للبيع النقدي');
+    if (saleType === 'CASH' && !cashCustomerPhone.trim()) return setError('أدخل رقم هاتف الزبون');
     
     try {
-      createSale(saleType, cart, customerId);
+      createSale(saleType, cart, customerId, saleType === 'CASH' ? {
+        name: cashCustomerName,
+        phone: cashCustomerPhone,
+        address: cashCustomerAddress,
+      } : undefined);
       onBack();
     } catch (e: any) {
       setError(e.message);
@@ -132,7 +141,7 @@ function NewSaleView({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 flex flex-col max-h-[55vh] shrink-0">
+      <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 flex flex-col max-h-[78vh] shrink-0">
         <div className="p-4 border-b border-gray-100 overflow-y-auto max-h-[30vh]">
           <h3 className="font-bold text-gray-800 mb-3 text-sm flex items-center gap-2">
             <ShoppingCart size={16} /> السلة ({cart.length})
@@ -156,7 +165,7 @@ function NewSaleView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
         
-        <div className="p-4 space-y-4 bg-white pb-6">
+        <div className="p-4 space-y-4 bg-white pb-6 overflow-y-auto">
           <div className="flex justify-between items-center">
             <span className="font-bold text-gray-600 text-sm">الإجمالي النهائي:</span>
             <span className="text-2xl font-black text-indigo-600">{formatCurrency(total)}</span>
@@ -172,6 +181,48 @@ function NewSaleView({ onBack }: { onBack: () => void }) {
               <option value="">-- اختر الزبون --</option>
               {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+          )}
+
+          {saleType === 'CASH' && (
+            <div className="space-y-3 rounded-2xl border border-gray-100 bg-gray-50 p-3">
+              <p className="text-sm font-bold text-gray-800">بيانات الزبون</p>
+              <div>
+                <label htmlFor="cash-customer-name" className="mb-1.5 block text-xs font-bold text-gray-700">اسم الزبون</label>
+                <input
+                  id="cash-customer-name"
+                  type="text"
+                  value={cashCustomerName}
+                  onChange={event => setCashCustomerName(event.target.value)}
+                  placeholder="أدخل اسم الزبون"
+                  className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="cash-customer-phone" className="mb-1.5 block text-xs font-bold text-gray-700">رقم الزبون</label>
+                <input
+                  id="cash-customer-phone"
+                  type="tel"
+                  value={cashCustomerPhone}
+                  onChange={event => setCashCustomerPhone(event.target.value)}
+                  placeholder="07xxxxxxxxx"
+                  className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                  dir="ltr"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="cash-customer-address" className="mb-1.5 block text-xs font-bold text-gray-700">العنوان <span className="font-normal text-gray-400">(اختياري)</span></label>
+                <input
+                  id="cash-customer-address"
+                  type="text"
+                  value={cashCustomerAddress}
+                  onChange={event => setCashCustomerAddress(event.target.value)}
+                  placeholder="أدخل عنوان الزبون إن وجد"
+                  className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                />
+              </div>
+            </div>
           )}
           
           {error && <p className="text-xs text-red-500 text-center font-bold bg-red-50 p-2 rounded-lg">{error}</p>}
@@ -245,7 +296,10 @@ export function SalesScreen({ onBack: _onBack }: { onBack?: () => void } = {}) {
     const popup = window.open('', '_blank', 'width=420,height=700');
     if (!popup) return setActionError('اسمح بالنوافذ المنبثقة لطباعة الإيصال');
     const rows = sale.items.map(item => `<tr><td>${safe(item.productName)}</td><td>${item.quantity}</td><td>${formatCurrency(item.totalPrice)}</td></tr>`).join('');
-    popup.document.write(`<html dir="rtl"><head><title>إيصال بيع</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:right}h1{text-align:center}</style></head><body><h1>إيصال بيع</h1><p>رقم العملية: ${safe(sale.saleId)}</p><p>التاريخ: ${new Date(sale.createdAt).toLocaleString('ar-IQ')}</p><table><thead><tr><th>المنتج</th><th>الكمية</th><th>المبلغ</th></tr></thead><tbody>${rows}</tbody></table><h2>الإجمالي: ${formatCurrency(sale.total)}</h2><script>window.print()</script></body></html>`);
+    const cashCustomerDetails = sale.cashCustomer
+      ? `<p>الزبون: ${safe(sale.cashCustomer.name)}</p><p>الهاتف: ${safe(sale.cashCustomer.phone)}</p>${sale.cashCustomer.address ? `<p>العنوان: ${safe(sale.cashCustomer.address)}</p>` : ''}`
+      : '';
+    popup.document.write(`<html dir="rtl"><head><title>إيصال بيع</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:right}h1{text-align:center}</style></head><body><h1>إيصال بيع</h1><p>رقم العملية: ${safe(sale.saleId)}</p><p>التاريخ: ${new Date(sale.createdAt).toLocaleString('ar-IQ')}</p>${cashCustomerDetails}<table><thead><tr><th>المنتج</th><th>الكمية</th><th>المبلغ</th></tr></thead><tbody>${rows}</tbody></table><h2>الإجمالي: ${formatCurrency(sale.total)}</h2><script>window.print()</script></body></html>`);
     popup.document.close();
   };
 
@@ -299,7 +353,7 @@ export function SalesScreen({ onBack: _onBack }: { onBack?: () => void } = {}) {
                   <div>
                     <span className="text-[10px] text-gray-400">#{sale.saleId.substring(sale.saleId.length - 6)}</span>
                     <p className="text-sm font-bold text-gray-900 mt-0.5">
-                      {sale.saleType === 'CASH' ? 'مبيعات نقدية' : `آجل: ${getCustomerName(sale.customerId)}`}
+                      {sale.saleType === 'CASH' ? `نقدي: ${sale.cashCustomer?.name || 'زبون نقدي'}` : `آجل: ${getCustomerName(sale.customerId)}`}
                     </p>
                   </div>
                   <span className={cn(

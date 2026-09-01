@@ -25,6 +25,10 @@ describe('critical UI paths', () => {
     render(<SalesScreen />);
     fireEvent.click(screen.getByRole('button', { name: /عملية بيع/ }));
     expect(screen.getByRole('heading', { name: 'عملية بيع جديدة' })).toBeTruthy();
+    expect(screen.getByLabelText('اسم الزبون')).toBeTruthy();
+    expect(screen.getByLabelText('رقم الزبون')).toBeTruthy();
+    expect(screen.getByLabelText(/العنوان/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'تأكيد وإتمام البيع' })).toBeTruthy();
   });
 
   it('opens a new purchase without a hooks crash', () => {

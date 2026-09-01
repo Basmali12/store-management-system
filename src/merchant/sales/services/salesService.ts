@@ -4,16 +4,35 @@ import { Sale, SaleItem } from '../models/types';
 import { tenantGetItem, tenantSetItem, snapshotTenantKeys } from '../../../shared/storage/tenantStorage';
 import { createId } from '../../../shared/utils/id';
 import { addAuditEntry } from '../../../shared/audit/auditService';
+import { isValidCustomerPhone, normalizePhone } from '../../../shared/utils/phone';
+
+interface CashCustomerInput {
+  name: string;
+  phone: string;
+  address?: string;
+}
 
 export const getSales = (): Sale[] => {
   const local = tenantGetItem('merchant_sales');
   return local ? JSON.parse(local) : [];
 };
 
-export const createSale = (saleType: 'CASH' | 'CREDIT', items: SaleItem[], customerId?: string) => {
+export const createSale = (
+  saleType: 'CASH' | 'CREDIT',
+  items: SaleItem[],
+  customerId?: string,
+  cashCustomerInput?: CashCustomerInput,
+) => {
   if (!items.length) throw new Error('لا يمكن حفظ بيع فارغ');
   if (saleType === 'CREDIT' && !customerId) throw new Error('يجب تحديد الزبون للبيع الآجل');
   if (saleType === 'CREDIT' && !getCustomers().some(customer => customer.id === customerId)) throw new Error('الزبون غير موجود');
+  const cashCustomer = saleType === 'CASH' ? {
+    name: cashCustomerInput?.name.trim() || '',
+    phone: normalizePhone(cashCustomerInput?.phone || ''),
+    address: cashCustomerInput?.address?.trim() || undefined,
+  } : undefined;
+  if (saleType === 'CASH' && !cashCustomer?.name) throw new Error('أدخل اسم الزبون للبيع النقدي');
+  if (saleType === 'CASH' && !isValidCustomerPhone(cashCustomer?.phone || '')) throw new Error('أدخل رقم هاتف صحيح للزبون');
 
   const products = getProducts();
   const saleId = createId('sale');
@@ -26,7 +45,7 @@ export const createSale = (saleType: 'CASH' | 'CREDIT', items: SaleItem[], custo
     return { ...item, totalPrice: item.quantity * item.unitPrice, unitPurchasePrice: product.purchasePrice, returnedQuantity: 0 };
   });
   const total = enrichedItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const newSale: Sale = { saleId, saleType, customerId, items: enrichedItems, subtotal: total, total, createdAt: new Date().toISOString(), refundedTotal: 0, status: 'COMPLETED' };
+  const newSale: Sale = { saleId, saleType, customerId, cashCustomer, items: enrichedItems, subtotal: total, total, createdAt: new Date().toISOString(), refundedTotal: 0, status: 'COMPLETED' };
   const rollback = snapshotTenantKeys(['merchant_products', 'merchant_stock_movements', 'merchant_customers', 'merchant_debts', 'merchant_sales', 'merchant_activity_log']);
   try {
     for (const item of enrichedItems) addStockMovement(item.productId, 'STOCK_OUT', item.quantity, 'عملية بيع');

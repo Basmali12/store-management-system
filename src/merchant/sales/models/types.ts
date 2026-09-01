@@ -12,6 +12,11 @@ export interface SaleItem {
 export interface Sale {
   saleId: string;
   customerId?: string;
+  cashCustomer?: {
+    name: string;
+    phone: string;
+    address?: string;
+  };
   saleType: 'CASH' | 'CREDIT';
   items: SaleItem[];
   subtotal: number;
