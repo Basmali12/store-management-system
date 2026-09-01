@@ -35,16 +35,6 @@ export const list = query({
   },
 });
 
-// Public by design: devices only receive the release number, never store data.
-export const appReleaseVersion = query({
-  args: {},
-  handler: async (ctx) => {
-    const record = await ctx.db.query('storeRecords')
-      .withIndex('by_key', q => q.eq('key', 'merchant_app_version')).unique();
-    return parseRecord<string>(record?.value, '1.0.0');
-  },
-});
-
 // The customer portal is intentionally phone-only. It returns only the matched
 // customer's own record and transactions, never the complete store dataset.
 export const customerPortalByPhone = query({

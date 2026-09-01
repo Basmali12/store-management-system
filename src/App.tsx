@@ -7,6 +7,7 @@ import { AppRouter } from './navigation/app_router/AppRouter';
 import { AppErrorBoundary } from './shared/components/AppErrorBoundary';
 import { ensureOfficialMerchantAccount } from './shared/auth/merchantAccounts';
 import { InstallPrompt } from './shared/components/InstallPrompt';
+import { UpdatePrompt } from './shared/components/UpdatePrompt';
 
 export default function App() {
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function App() {
     <AppErrorBoundary>
       <AppRouter />
       <InstallPrompt />
+      <UpdatePrompt />
     </AppErrorBoundary>
   );
 }

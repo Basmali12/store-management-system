@@ -1,40 +1,43 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import {
-  APP_VERSION_CHANGED_EVENT,
-  getAppliedAppVersion,
+  fetchPublishedAppVersion,
   hasNewAppVersion,
-  markAppVersionApplied,
 } from '../update/appVersion';
 
 interface UpdatePromptProps {
-  availableVersion: string | null | undefined;
+  availableVersion?: string | null;
 }
 
 export function UpdatePrompt({ availableVersion }: UpdatePromptProps) {
-  const [appliedVersion, setAppliedVersion] = useState(() => getAppliedAppVersion());
+  const [publishedVersion, setPublishedVersion] = useState<string | null>(availableVersion ?? null);
   const [expanded, setExpanded] = useState(true);
-  const updateAvailable = hasNewAppVersion(availableVersion, appliedVersion);
+  const updateAvailable = hasNewAppVersion(publishedVersion);
 
   useEffect(() => {
-    if (!availableVersion) return;
-    if (!getAppliedAppVersion()) {
-      markAppVersionApplied(availableVersion);
-      setAppliedVersion(availableVersion);
-    }
+    if (availableVersion !== undefined) setPublishedVersion(availableVersion);
   }, [availableVersion]);
 
   useEffect(() => {
-    const handleLocalVersionChange = (event: Event) => {
-      const version = (event as CustomEvent<string>).detail;
-      if (version) setExpanded(true);
+    if (availableVersion !== undefined) return;
+    const checkVersion = async () => {
+      if (!navigator.onLine) return;
+      const version = await fetchPublishedAppVersion();
+      if (version) setPublishedVersion(version);
     };
-    window.addEventListener(APP_VERSION_CHANGED_EVENT, handleLocalVersionChange);
-    return () => window.removeEventListener(APP_VERSION_CHANGED_EVENT, handleLocalVersionChange);
-  }, []);
+    const handleFocusOrOnline = () => void checkVersion();
+    void checkVersion();
+    const interval = window.setInterval(checkVersion, 5 * 60 * 1000);
+    window.addEventListener('focus', handleFocusOrOnline);
+    window.addEventListener('online', handleFocusOrOnline);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', handleFocusOrOnline);
+      window.removeEventListener('online', handleFocusOrOnline);
+    };
+  }, [availableVersion]);
 
   const applyUpdate = async () => {
-    if (!availableVersion) return;
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map(async registration => {
@@ -42,8 +45,6 @@ export function UpdatePrompt({ availableVersion }: UpdatePromptProps) {
         registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
       }));
     }
-    markAppVersionApplied(availableVersion);
-    setAppliedVersion(availableVersion);
     window.setTimeout(() => window.location.reload(), 300);
   };
 
@@ -78,7 +79,7 @@ export function UpdatePrompt({ availableVersion }: UpdatePromptProps) {
         </div>
         <h2 className="mt-5 text-center text-2xl font-extrabold text-amber-300">يوجد تحديث جديد</h2>
         <p className="mt-2 text-center text-sm leading-7 text-slate-200">
-          الإصدار {availableVersion} جاهز. حدّث التطبيق للحصول على آخر الإضافات والإصلاحات.
+          الإصدار {publishedVersion} جاهز. حمّل النسخة الجديدة للحصول على آخر الإضافات والإصلاحات.
         </p>
         <button
           type="button"
@@ -86,7 +87,7 @@ export function UpdatePrompt({ availableVersion }: UpdatePromptProps) {
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-4 py-3.5 font-extrabold text-slate-950 hover:bg-amber-300"
         >
           <RefreshCw size={21} />
-          تحديث الآن
+          تحميل النسخة الجديدة
         </button>
         <button
           type="button"

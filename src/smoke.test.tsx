@@ -13,7 +13,7 @@ import { getMerchantSession, setMerchantSession } from './shared/storage/session
 import { addCustomer, getCustomers } from './merchant/debts/services/debtService';
 import { SettingsScreen } from './merchant/settings/screens/SettingsScreen';
 import { UpdatePrompt } from './shared/components/UpdatePrompt';
-import { APPLIED_APP_VERSION_KEY } from './shared/update/appVersion';
+import { CURRENT_APP_VERSION } from './shared/update/appVersion';
 import { updateSale } from './merchant/sales/services/salesService';
 
 beforeEach(() => {
@@ -216,23 +216,24 @@ describe('critical UI paths', () => {
     await waitFor(() => expect(prompt).toHaveBeenCalledOnce());
   });
 
-  it('saves the central app version from settings for synchronization', () => {
+  it('shows the code-defined app version as read-only in settings', () => {
     render(<SettingsScreen onBack={() => undefined} />);
-    const input = screen.getByLabelText('رقم الإصدار');
-    fireEvent.change(input, { target: { value: '1.2.0' } });
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ واعتماد الإصدار' }));
-
-    expect(JSON.parse(tenantGetItem('merchant_app_version') || 'null')).toBe('1.2.0');
-    expect(screen.getByText(/سيظهر تنبيه التحديث/)).toBeTruthy();
-    expect(getStoreSyncQueue().some(operation => operation.key === 'merchant_app_version')).toBe(true);
+    expect(screen.getByLabelText('رقم الإصدار').textContent).toBe(CURRENT_APP_VERSION);
+    expect(screen.queryByRole('button', { name: 'حفظ واعتماد الإصدار' })).toBeNull();
+    expect(screen.getByText(/لا يمكن تغييره من التطبيق/)).toBeTruthy();
   });
 
-  it('shows a persistent update badge until the new version is applied', () => {
-    localStorage.setItem(APPLIED_APP_VERSION_KEY, '1.0.0');
-    render(<UpdatePrompt availableVersion="1.1.0" />);
+  it('shows a persistent update badge when the published code version changes', () => {
+    render(<UpdatePrompt availableVersion="99.0.0" />);
 
     expect(screen.getByRole('heading', { name: 'يوجد تحديث جديد' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'تحميل النسخة الجديدة' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'لاحقًا' }));
     expect(screen.getByRole('button', { name: 'يوجد تحديث جديد' })).toBeTruthy();
+  });
+
+  it('does not show an update when the published and installed versions match', () => {
+    render(<UpdatePrompt availableVersion={CURRENT_APP_VERSION} />);
+    expect(screen.queryByRole('heading', { name: 'يوجد تحديث جديد' })).toBeNull();
   });
 });

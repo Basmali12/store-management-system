@@ -7,7 +7,7 @@ import { changeOfficialMerchantPassword, signOutOfficialMerchant } from '../../.
 import { exportTenantData, restoreTenantData } from '../../../shared/storage/tenantStorage';
 import { todayLocalDateKey } from '../../../shared/utils/date';
 import { addAuditEntry } from '../../../shared/audit/auditService';
-import { getConfiguredAppVersion, saveConfiguredAppVersion } from '../../../shared/update/appVersion';
+import { CURRENT_APP_VERSION } from '../../../shared/update/appVersion';
 
 interface SettingsScreenProps {
   onBack: () => void;
@@ -26,9 +26,6 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const [accountSuccess, setAccountSuccess] = useState('');
   const [restoreError, setRestoreError] = useState('');
   const [restoreSuccess, setRestoreSuccess] = useState('');
-  const [appVersion, setAppVersion] = useState('1.0.0');
-  const [versionError, setVersionError] = useState('');
-  const [versionSuccess, setVersionSuccess] = useState('');
 
   useEffect(() => {
     // Load theme
@@ -42,21 +39,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       setStoreName(account.storeName || '');
       setPhone(account.phone || '');
     }
-    setAppVersion(getConfiguredAppVersion());
   }, []);
-
-  const handleSaveVersion = () => {
-    setVersionError('');
-    setVersionSuccess('');
-    try {
-      const saved = saveConfiguredAppVersion(appVersion);
-      setAppVersion(saved);
-      setVersionSuccess('تم اعتماد الإصدار. سيظهر تنبيه التحديث على الأجهزة تلقائيًا.');
-      window.setTimeout(() => setVersionSuccess(''), 5000);
-    } catch (error) {
-      setVersionError(error instanceof Error ? error.message : 'تعذر حفظ رقم الإصدار');
-    }
-  };
 
   const handleThemeChange = (t: string) => {
     setTheme(t);
@@ -250,24 +233,12 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
             تحديث التطبيق
           </h2>
           <p className="mb-4 text-xs leading-6 text-gray-500 dark:text-gray-400">
-            بعد رفع النسخة الجديدة غيّر رقم الإصدار واحفظه، وسيصل تنبيه التحديث تلقائيًا إلى كل الأجهزة المتصلة.
+            رقم الإصدار محدد داخل ملفات النظام ولا يمكن تغييره من التطبيق. عند نشر إصدار جديد ستظهر رسالة التحديث تلقائيًا.
           </p>
-          <label htmlFor="app-version" className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">رقم الإصدار</label>
-          <input
-            id="app-version"
-            type="text"
-            inputMode="decimal"
-            dir="ltr"
-            value={appVersion}
-            onChange={(event) => setAppVersion(event.target.value)}
-            placeholder="1.0.0"
-            className="w-full bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          {versionError && <p className="mt-2 text-red-500 text-xs font-bold flex items-center gap-1"><AlertCircle size={14}/> {versionError}</p>}
-          {versionSuccess && <p className="mt-2 text-green-600 text-xs font-bold flex items-center gap-1"><Check size={14}/> {versionSuccess}</p>}
-          <button onClick={handleSaveVersion} className="mt-4 w-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-bold py-3 rounded-xl hover:bg-amber-100 transition-colors">
-            حفظ واعتماد الإصدار
-          </button>
+          <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20">
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-200">الإصدار الحالي</span>
+            <output aria-label="رقم الإصدار" dir="ltr" className="rounded-lg bg-white px-3 py-1.5 font-black text-amber-700 shadow-sm dark:bg-gray-800 dark:text-amber-300">{CURRENT_APP_VERSION}</output>
+          </div>
         </section>
 
         {/* Backup / Restore */}
