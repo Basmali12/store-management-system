@@ -1,3 +1,5 @@
+import { isConvexDataEnabled } from '../config/dataMode';
+
 export interface StoreSyncOperation {
   id: string;
   key: string;
@@ -23,6 +25,7 @@ const writeQueue = (queue: StoreSyncOperation[]) => {
 };
 
 const enqueue = (key: string, value: string | null) => {
+  if (!isConvexDataEnabled) return;
   const operation: StoreSyncOperation = {
     id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
     key,

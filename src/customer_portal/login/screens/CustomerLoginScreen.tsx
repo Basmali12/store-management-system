@@ -6,6 +6,7 @@ import { getMerchantAccounts } from '../../../shared/auth/merchantAccounts';
 import { tenantGetItem, tenantStorageKey } from '../../../shared/storage/tenantStorage';
 import { CustomerSession } from '../../../shared/storage/session';
 import { normalizePhone } from '../../../shared/utils/phone';
+import { isConvexDataEnabled } from '../../../shared/config/dataMode';
 
 interface Props {
   onLogin: (session: CustomerSession) => void;
@@ -42,7 +43,7 @@ export function CustomerLoginScreen({ onLogin, onBack }: Props) {
 
     try {
       const convexUrl = import.meta.env.VITE_CONVEX_URL?.trim();
-      if (convexUrl && navigator.onLine) {
+      if (isConvexDataEnabled && convexUrl && navigator.onLine) {
         const client = new ConvexHttpClient(convexUrl);
         const result = await client.query(api.storeData.customerPortalByPhone, { phone: normalizedPhone });
         if (result) {

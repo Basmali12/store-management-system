@@ -3,12 +3,13 @@ import { ConvexReactClient } from 'convex/react';
 import { ConvexBetterAuthProvider, type AuthClient } from '@convex-dev/better-auth/react';
 import { authClient } from './authClient';
 import { StoreDataSyncGate } from './StoreDataSyncGate';
+import { isConvexDataEnabled } from '../config/dataMode';
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL?.trim();
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
 
 export function ConvexRoot({ children }: { children: ReactNode }) {
-  if (!convexClient) return children;
+  if (!isConvexDataEnabled || !convexClient) return children;
   return (
     <ConvexBetterAuthProvider client={convexClient} authClient={authClient as unknown as AuthClient}>
       <StoreDataSyncGate>{children}</StoreDataSyncGate>

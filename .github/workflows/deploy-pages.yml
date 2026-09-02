@@ -34,8 +34,7 @@ jobs:
         run: npm run build
         env:
           VITE_PUBLIC_BASE: /store-management-system/
-          VITE_CONVEX_URL: https://fine-marten-107.convex.cloud
-          VITE_CONVEX_SITE_URL: https://fine-marten-107.convex.site
+          VITE_DATA_MODE: local
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

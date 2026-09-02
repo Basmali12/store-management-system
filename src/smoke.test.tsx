@@ -15,6 +15,7 @@ import { SettingsScreen } from './merchant/settings/screens/SettingsScreen';
 import { UpdatePrompt } from './shared/components/UpdatePrompt';
 import { CURRENT_APP_VERSION } from './shared/update/appVersion';
 import { updateSale } from './merchant/sales/services/salesService';
+import { authenticateOfficialMerchant, changeOfficialMerchantPassword } from './shared/auth/serverAuth';
 
 beforeEach(() => {
   localStorage.clear();
@@ -131,6 +132,28 @@ describe('critical UI paths', () => {
     expect(official?.password).toBeUndefined();
   });
 
+  it('logs the trial owner in locally without a Convex connection', async () => {
+    localStorage.removeItem('merchantSession');
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /صاحب المحل/ }));
+    fireEvent.change(document.querySelector('input[type="password"]')!, { target: { value: '1001' } });
+    fireEvent.click(screen.getByRole('button', { name: 'تسجيل الدخول' }));
+
+    expect(await screen.findByRole('button', { name: 'الرئيسية' })).toBeTruthy();
+    expect(getMerchantSession()).toBe('merchant_official');
+  });
+
+  it('keeps a changed local trial password across account initialization', async () => {
+    expect(await authenticateOfficialMerchant('merchant_official', '1001')).toBeTruthy();
+    await changeOfficialMerchantPassword('1001', 'local-pass-2026');
+
+    const { ensureOfficialMerchantAccount } = await import('./shared/auth/merchantAccounts');
+    ensureOfficialMerchantAccount();
+
+    expect(await authenticateOfficialMerchant('merchant_official', '1001')).toBeNull();
+    expect(await authenticateOfficialMerchant('merchant_official', 'local-pass-2026')).toBeTruthy();
+  });
+
   it('uses one registered phone field for customer login and creates no credentials', async () => {
     setMerchantSession('merchant_official');
     const customer = await addCustomer('زبون الاختبار', '٠٧٧١٢٣٤٥٦٧٨');
@@ -163,23 +186,20 @@ describe('critical UI paths', () => {
     expect(screen.queryByRole('heading', { name: 'تسجيل الدخول للمحل' })).toBeNull();
   });
 
-  it('keeps offline writes locally and deduplicates the pending sync queue', () => {
+  it('keeps trial writes locally without creating a Convex sync queue', () => {
     tenantSetItem('merchant_products', JSON.stringify([{ id: 'p1', name: 'أول' }]));
     tenantSetItem('merchant_products', JSON.stringify([{ id: 'p1', name: 'معدل' }]));
 
     expect(JSON.parse(tenantGetItem('merchant_products') || '[]')[0].name).toBe('معدل');
-    expect(getStoreSyncQueue()).toHaveLength(1);
-    expect(getStoreSyncQueue()[0].value).toContain('معدل');
+    expect(getStoreSyncQueue()).toHaveLength(0);
   });
 
-  it('keeps deletion as the newest pending operation so old server data cannot return', () => {
+  it('keeps trial deletions local without creating a Convex sync queue', () => {
     tenantSetItem('merchant_customers', JSON.stringify([{ id: 'c1' }]));
     tenantRemoveItem('merchant_customers');
 
     expect(tenantGetItem('merchant_customers')).toBeNull();
-    const pending = getStoreSyncQueue().filter(operation => operation.key === 'merchant_customers');
-    expect(pending).toHaveLength(1);
-    expect(pending[0].value).toBeNull();
+    expect(getStoreSyncQueue()).toHaveLength(0);
   });
 
   it('opens the main navigation and every quick-action button', async () => {

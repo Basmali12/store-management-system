@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alnoor-offline-v4';
+const CACHE_NAME = 'alnoor-offline-v5';
 const APP_SHELL = ['./', './manifest.webmanifest', './version.json', './alnoor-logo.png'];
 
 self.addEventListener('install', event => {

@@ -1,6 +1,7 @@
 import { createPasswordCredential, verifyPassword } from '../security/password';
 import { createId } from '../utils/id';
 import { tenantGetItem, tenantSetItem } from '../storage/tenantStorage';
+import { isConvexDataEnabled } from '../config/dataMode';
 
 export interface MerchantAccount {
   id: string;
@@ -15,6 +16,7 @@ export interface MerchantAccount {
 
 const STORAGE_KEY = 'merchant_accounts';
 export const OFFICIAL_MERCHANT_PHONE = '07710074850';
+const LOCAL_TRIAL_PASSWORD = '1001';
 
 const normalizeLegacyAccounts = (): MerchantAccount[] => {
   const current = localStorage.getItem(STORAGE_KEY);
@@ -49,9 +51,40 @@ export const ensureOfficialMerchantAccount = () => {
       phone: OFFICIAL_MERCHANT_PHONE,
       createdAt: new Date().toISOString(),
   };
-  delete official.passwordCredential;
-  delete official.password;
+  if (isConvexDataEnabled) {
+    delete official.passwordCredential;
+    delete official.password;
+  }
   saveMerchantAccounts([official]);
+};
+
+export const authenticateLocalOfficialMerchant = async (password: string): Promise<MerchantAccount | null> => {
+  const accounts = getMerchantAccounts();
+  const existing = accounts.find(account => account.phone === OFFICIAL_MERCHANT_PHONE) || accounts[0];
+  const official: MerchantAccount = existing ? {
+    ...existing,
+    phone: OFFICIAL_MERCHANT_PHONE,
+  } : {
+    id: 'merchant_official',
+    ownerName: 'الحساب الرسمي',
+    storeName: 'المحل الرسمي',
+    phone: OFFICIAL_MERCHANT_PHONE,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (official.passwordCredential) {
+    if (!await verifyPassword(password, official.passwordCredential)) return null;
+  } else if (official.password) {
+    if (official.password !== password) return null;
+    official.passwordCredential = await createPasswordCredential(password);
+    delete official.password;
+  } else {
+    if (password !== LOCAL_TRIAL_PASSWORD) return null;
+    official.passwordCredential = await createPasswordCredential(password);
+  }
+
+  saveMerchantAccounts([official]);
+  return official;
 };
 
 export const authenticateMerchant = async (login: string, password: string): Promise<MerchantAccount | null> => {
