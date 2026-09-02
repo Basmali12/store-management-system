@@ -1,5 +1,5 @@
-const CACHE_NAME = 'store-owner-offline-v3';
-const APP_SHELL = ['./', './manifest.webmanifest', './version.json', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'alnoor-offline-v4';
+const APP_SHELL = ['./', './manifest.webmanifest', './version.json', './alnoor-logo.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
