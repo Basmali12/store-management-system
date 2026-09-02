@@ -16,6 +16,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
     baseURL: process.env.CONVEX_SITE_URL,
     trustedOrigins: [
       siteUrl,
+      'https://basmali12.github.io',
       'http://127.0.0.1:3000',
       'http://localhost:3000',
     ],
