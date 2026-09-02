@@ -53,7 +53,7 @@ export function RoleSelectionScreen({ onSelectMerchant, onSelectCustomer }: Prop
             </div>
             <div className="text-right">
               <h2 className="text-lg font-bold text-gray-900">صاحب المحل</h2>
-              <p className="text-xs text-gray-500 mt-1">إدارة المحل، الديون، والمخزون</p>
+              <p className="text-xs text-gray-500 mt-1">إدارة الديون والحسابات والمخزون</p>
             </div>
           </button>
 
@@ -105,7 +105,7 @@ export function MerchantLoginScreen({ onLogin, onBack }: Props) {
           <Store size={40} />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">تسجيل الدخول</h1>
-        <p className="text-sm text-gray-500 mb-8">أهلاً بك مجدداً في نظام إدارة المحل</p>
+        <p className="text-sm text-gray-500 mb-8">أهلاً بك مجدداً في نظام النور للإدارة والديون</p>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>

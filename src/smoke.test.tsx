@@ -107,7 +107,7 @@ describe('critical UI paths', () => {
     localStorage.removeItem('merchantSession');
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'أهلاً بك في أبو شمس' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'أهلاً بك في النور للإدارة والديون' })).toBeTruthy();
     expect(screen.getByRole('button', { name: /صاحب المحل/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /دخول الزبون/ })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /صاحب المحل/ }));
@@ -116,7 +116,7 @@ describe('critical UI paths', () => {
     expect(document.querySelectorAll('input[type="password"]')).toHaveLength(1);
     expect(screen.queryByText('إنشاء حساب محل جديد')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'العودة لاختيار نوع الدخول' }));
-    expect(screen.getByRole('heading', { name: 'أهلاً بك في أبو شمس' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'أهلاً بك في النور للإدارة والديون' })).toBeTruthy();
   });
 
   it('uses the official merchant account and hides public registration', () => {
@@ -211,7 +211,7 @@ describe('critical UI paths', () => {
 
     render(<InstallPrompt />);
     window.dispatchEvent(event);
-    expect(await screen.findByRole('heading', { name: 'ثبّت تطبيق أبو شمس' }, { timeout: 1500 })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'ثبّت تطبيق النور' }, { timeout: 1500 })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'تحميل التطبيق' }));
     await waitFor(() => expect(prompt).toHaveBeenCalledOnce());
   });

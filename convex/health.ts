@@ -4,6 +4,6 @@ export const ping = query({
   args: {},
   handler: async () => ({
     ok: true,
-    service: 'store-management-system',
+    service: 'alnoor-management-debt',
   }),
 });

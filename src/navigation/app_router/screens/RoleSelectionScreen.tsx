@@ -13,11 +13,11 @@ export function RoleSelectionScreen({ onSelectMerchant, onSelectCustomer }: Prop
       <div className="w-full max-w-md overflow-hidden rounded-[2.2rem] border border-white/20 bg-white/95 shadow-2xl shadow-slate-950/30">
         <div className="bg-[#0b1b33] px-6 pb-8 pt-7 text-center text-white">
           <img
-            src={`${import.meta.env.BASE_URL}icon-512.png`}
-            alt="شعار تطبيق أبو شمس"
+            src={`${import.meta.env.BASE_URL}alnoor-logo.png`}
+            alt="شعار تطبيق النور"
             className="mx-auto mb-4 h-24 w-24 rounded-[1.7rem] object-cover shadow-xl shadow-amber-400/20"
           />
-          <h1 className="text-3xl font-black text-amber-300">أهلاً بك في أبو شمس</h1>
+          <h1 className="text-3xl font-black text-amber-300">أهلاً بك في النور للإدارة والديون</h1>
           <p className="mt-2 text-sm text-slate-300">اختر طريقة الدخول للمتابعة</p>
         </div>
         

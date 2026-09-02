@@ -63,11 +63,11 @@ export function InstallPrompt() {
         </button>
 
         <img
-          src={`${import.meta.env.BASE_URL}icon-512.png`}
-          alt="شعار تطبيق أبو شمس"
+          src={`${import.meta.env.BASE_URL}alnoor-logo.png`}
+          alt="شعار تطبيق النور"
           className="mx-auto mb-4 h-28 w-28 rounded-[1.8rem] object-cover shadow-xl shadow-amber-400/20"
         />
-        <h2 className="text-center text-2xl font-extrabold text-amber-300">ثبّت تطبيق أبو شمس</h2>
+        <h2 className="text-center text-2xl font-extrabold text-amber-300">ثبّت تطبيق النور</h2>
         <p className="mt-2 text-center text-sm leading-7 text-slate-200">
           وصول أسرع، عمل بدون إنترنت، وبيانات محفوظة محليًا حتى تعود المزامنة.
         </p>
